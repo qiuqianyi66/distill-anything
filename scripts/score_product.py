@@ -109,7 +109,7 @@ def d3_fallback(body):
 
 
 def d4_unknown(body):
-    rows = section_rows(body, ("未知台账",))
+    rows = section_rows(body, ("未知台账", "未知", "unknown", "缺口", "gaps"))
     if not rows:
         return 0.0, "无未知台账数据行"
     thin = [r for r in rows if len(r) < 3 or not r[2] or r[2].startswith("（待填")]
