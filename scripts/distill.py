@@ -240,19 +240,38 @@ def cmd_init(args):
     return 0
 
 
+def iter_containers(root):
+    """找出 root 下所有 distill-* 容器，容忍按域分桶的嵌套布局。
+
+    原先假设 `out/distill-*` 是平铺的，2026-11-09 DSH 目录按域隔离后产物变成
+    `runtime/out/<bucket>/distill-*`，平铺 glob 会一份都找不到——门禁于是静默通过。
+    限制相对深度 ≤3 且跳过 raw/notes 下的快照副本，避免把素材里的仓库副本当容器。
+    """
+    root = Path(root)
+    if root.is_dir() and root.name.startswith("distill-"):
+        return [root]
+    out = []
+    for p in sorted(root.rglob("distill-*")):
+        if not p.is_dir():
+            continue
+        rel = p.relative_to(root).parts
+        if len(rel) <= 3 and "raw" not in rel and "notes" not in rel:
+            out.append(p)
+    return out
+
+
 def expand_gate_targets(targets, recursive):
     """--recursive 时把目录展开成产物 md；默认行为不变，原样返回。
 
-    口径与 index/scan 一致：只自动收 `distill-*` 容器（target 自己是 distill-* 也算），
-    非 distill-* 目录不自动展开——out 下有大量其他任务的素材，全量 rglob 会把它们
-    误判成产物（2026-11-09 实测一次拉出 308 份）。raw/notes 与备份仍排除。
+    只自动收 distill-* 容器（含分桶嵌套布局），非 distill-* 目录不自动展开——
+    out 下有大量其他任务的素材，全量 rglob 会把它们误判成产物（2026-11-09 实测
+    一次拉出 308 份）。raw/notes 与备份仍排除。
     """
     out = []
     for raw in targets:
         p = Path(raw)
         if recursive and p.is_dir():
-            containers = [p] if p.name.startswith("distill-") else sorted(
-                d for d in p.glob("distill-*") if d.is_dir())
+            containers = iter_containers(p)
             hits = []
             for c in containers:
                 hits.extend(
@@ -308,10 +327,7 @@ def cmd_gate(args):
 
 def cmd_index(args):
     root = Path(args.root)
-    if root.is_dir() and root.name.startswith("distill-"):
-        dirs = [root]
-    else:
-        dirs = sorted([p for p in root.glob("distill-*") if p.is_dir()])
+    dirs = iter_containers(root)
     if not dirs:
         print(f"{root} 下没有 distill-* 目录")
         return 2
@@ -529,8 +545,7 @@ def cmd_evidence_rebind(args):
 def cmd_scan(args):
     """只读扫描：列出产物里所有文件锚点，逐个验可解析性。不改任何文件。"""
     root = Path(args.root)
-    dirs = [root] if (root.is_dir() and root.name.startswith("distill-")) else sorted(
-        [p for p in root.glob("distill-*") if p.is_dir()])
+    dirs = iter_containers(root)
     if not dirs:
         print(f"{root} 下没有 distill-* 目录", file=sys.stderr)
         return 2

@@ -286,6 +286,31 @@ def main() -> int:
         got, code = run_gate(gate, rp)
         failures += report("stamp-mangled", "INCOMPLETE", got, code)
 
+    # 分桶布局：产物被搬到 out/<bucket>/distill-* 后，--recursive 仍必须找到它。
+    # 原先只 glob 顶层，DSH 2026-11-09 按域隔离后门禁会静默「0 份通过」，比报错更危险。
+    total += 1
+    with tempfile.TemporaryDirectory() as td:
+        bucket = Path(td) / "bucket" / "distill-nested"
+        bucket.mkdir(parents=True)
+        shutil.copy(root / "fixtures" / "good.md", bucket / "report.md")
+        # 素材里的仓库副本不该被当容器：放一份在 raw/ 下，期望仍只找到 1 份
+        snap = bucket / "raw" / "skills" / "distill-copy"
+        snap.mkdir(parents=True)
+        shutil.copy(root / "fixtures" / "bad.md", snap / "report.md")
+        distill = gate.parent / "distill.py"
+        proc = subprocess.run([sys.executable, str(distill), "gate", td, "--recursive", "--json"],
+                              capture_output=True, text=True, encoding="utf-8")
+        try:
+            rs = json.loads(proc.stdout)
+        except json.JSONDecodeError:
+            rs = []
+        # 只验「发现」这一件事：命中 1 份，且是 bucket 里那份而不是 raw/ 快照副本。
+        # 判什么状态不属本用例（fixture 换目录后其锚点指向的 src/ 不在原地）。
+        hit_nested = len(rs) == 1 and "distill-nested" in rs[0]["target"]
+        where = rs[0]["target"] if rs else "—"
+        print(f"{'ok  ' if hit_nested else 'FAIL'} {'nested-container':<16} expect=命中嵌套1份  got={len(rs)} 份 {where[-40:]}")
+        failures += 0 if hit_nested else 1
+
     print(f"\n{total - failures}/{total} 通过")
     return 1 if failures else 0
 

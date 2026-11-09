@@ -130,6 +130,8 @@ updated: 2026-11-09
 
 > **gate 只对产物生效。** 被蒸馏的原始现场（事故对象目录、竞品快照目录）现在按外来文件判 SKIP，不再是 INCOMPLETE——「它不是产物」不该记成「它没做完」。`index` / `scan` 按 `distill-*` 容器与 `evidence.jsonl` 过滤，不会误收（`← 2026-11-09 F1 修正 11-08 门 4 的旧口径`）。
 
+**容器可能不在顶层。** 产物目录改成按域分桶后（`runtime/out/<桶>/distill-*`），只 glob 顶层会一份都找不到，门禁于是「0 份通过」——比报错更危险。现在 `gate --recursive` / `index` / `scan` 共用 `iter_containers()`：`rglob("distill-*")`、相对深度 ≤3、跳过 `raw/` 与 `notes/` 下的快照副本。文件被搬进分桶后仍然报错找不到时，先怀疑这条（`← 2026-11-09 DSH 按域隔离后实测`）。
+
 **S9 交付 + 演化。** 报告四件事：框架数 / 一手来源占比 / 门禁状态 / 未知条数。留纠正入口：用户说「他不会这样」时，走 `references/evidence-protocol.md` 的纠正流程，只改被指出那条，不动已验证部分。
 
 **S9.5 判据回流（门禁判红之后走这里）。** 红不是结论，是待分类的信号：
@@ -222,7 +224,7 @@ out/distill-<slug>/
 | `scripts/gate.py` | 单文件门禁，可脱离 distill.py 独立跑 | `python scripts/gate.py <产物> --json` |
 | `scripts/anchorize.py` | 把正文里带标记行的路径锚点批量换成 E id | `python scripts/anchorize.py <产物目录> --dry-run` |
 | `scripts/migrate_legacy.py` | 把旧产物的路径锚点迁进证据库 | `python scripts/migrate_legacy.py --help` |
-| `tests/run_gate_tests.py` | 门禁回归 28 例（CLI 级，验整份产物三态） | 改任何判据后必须跑 |
+| `tests/run_gate_tests.py` | 门禁回归 29 例（CLI 级，验整份产物三态 + 分桶嵌套发现） | 改任何判据后必须跑 |
 | `tests/test_groups.py` | 5 个 `_check_*` 分组函数的函数级单测 | 改单个分组判据时先跑它，定位比 CLI 级快 |
 
 `scripts/gate.py` 被 `distill.py` import 而单独调用也能用；`migrate_legacy.py` 只在迁移旧产物时用一次，平时不用。
