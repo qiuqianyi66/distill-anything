@@ -190,6 +190,34 @@ perspective 三项的反例注入：把 `MAX_MODELS` 由 7 改成 20，`persp-mo
   - **有意无齿**：`size` 只带 `warn` 标记、不改变三态（体积大不等于不合格，只提示）；`persp:agentic` 与 `section:降级路径` 是观察期判据，ok 恒为 None 或 True。
 - 纪律：新增任何判据，必须在同一次提交里给出一个能把它打红的用例；否则它只是一句愿望。
 
+## 从「验形态」到「验行为」：集合断言四例（2026-11-09）
+
+上一轮只问「这条判据红过没有」，这一轮问的是「红的理由是不是它」——前者只能证明判据会响，证明不了响的原因。
+
+- **归因字段本来就有**，不需要给 gate 加输出：`checks[]` 每项都带 `name / ok / kind`，判红的集合就是 `{c.name for c in checks if c.ok is False}`。本轮唯一要补的是**断言口径**，不是字段。
+- **口径改为集合全等**：`fired == 预期集合`。只断言「预期名 in fired」会把「被别的判据顺带拦下」也算通过，等于假验收。
+- 新增 4 个变异夹具（每条只种一处缺陷），并把「反向验证」写进同一条用例：把对应判据临时放宽（`MARK_MIN=0` / `ANCHOR_MIN=0` / `resolve_anchor` 恒真），该夹具必须转 PASS，否则说明它红在别的理由上。
+
+| 夹具 | 缺陷 | 预期状态 | 预期 fired | 临时放宽谁 → 应转 PASS |
+|---|---|---|---|---|
+| `mut-anchor-range.md` | 锚点行号越界（`src/core.ts:3` → `:9999`） | FAIL | `{anchor-liveness}` | `resolve_anchor` |
+| `mut-anchor-outside.md` | 锚点指向容器外（`../../outside.md:5`） | FAIL | `{anchor-liveness}` | `resolve_anchor` |
+| `mut-marker-count.md` | 标记清零（20 → 0） | INCOMPLETE | `{markers}` | `MARK_MIN=0` |
+| `mut-anchor-count.md` | 锚点压到 4（文件 4 + URL 0） | INCOMPLETE | `{anchors}` | `ANCHOR_MIN=0` |
+
+- 回归：33 → **37/37**。
+- **两条实测教训，写作时别踩**：① `anchors` 统计的是「文件 + URL + 证据 id」**总数**，只删文件锚点、留着 URL 时仍可能达标（4+1=5 就过）；② `anchor-liveness` 是**确定性抽样**（≤3 全查，否则按 sha1 取 20%、至少 3），破坏一个锚点未必被抽到——所以夹具要么把锚点数压到 ≤3，要么接受「抽样命中率」这个先天不确定性，不能据此说「这条判据必红」。
+- 软化措辞（可以考虑 / 也许 / 根据情况）**不在 gate 里**，只有 `score_product.py` 的 D5 扣分；别把它当成门禁判据写进表里。
+
+## D7（生成力）的盲化标定（2026-11-09）
+
+判据与方法：`references/d7-blind-protocol.md`；工具：`scripts/d7_blind.py`（plan / score / report，`--reveal` 才看映射）。
+
+- 做法：先把 5 条判据（给立场 / 给做法 / 给依据 / 给边界 / 不失真）写定，再遮蔽臂标签、每轮重新打乱、内联正文，评完揭盲。
+- 结论口径已降级：**只报「三轮多数 + 一致/分歧」，不报分差与置信区间**——单人三轮撑不起区间，报出来是装饰。
+- pilot（1 个问题 × 4 臂 × 3 轮，n=1）：产物最好 5 分 vs 空臂 3 分（差 2，可区分）；三派之间 5 vs 4（差 1，不可区分）。详见 `runtime/out/skills-governance/distill-cross-compare/notes/d7-blind-pilot.md`。
+- 已知污染：评审者就是产物作者。遮蔽压得住「记得出处」，压不住「记得自己写过什么」，所以这只是标定，不是结论。
+
 ## 已知局限（不要当成全覆盖）
 
 - 只判结构，判不了「锚点是否指向真实存在的内容」（文件存在≠证据成立）。

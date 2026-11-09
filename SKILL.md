@@ -1,7 +1,7 @@
 ---
 name: distill-anything
 description: 蒸馏一切——把任意对象（人、代码仓库、长文档、技能库、事故、对话日志、竞品、方法论流派）压成带证据锚点、未知台账、可证伪判据的可复用产物。Use when 用户说蒸馏X、逆向X、扒一个X、把X做成skill、提炼X的方法论。Don't use for 纯摘要（走 doubao-critical-reading-companion）、人物角色扮演（走 distilly）、代码库架构讲解（走 doubao-coding-analyze-codebase）。
-version: 1.1.18
+version: 1.1.19
 source: 三重验证/去名测试 ← alchaincyf/nuwa-skill v1.1.0；工厂式写入/质检不允许伪造 ← titanwings/distilly；证据三元/未知台账/覆盖≠存在 ← morluto/rea；双模式授权/不确定无等级 ← 蒸馏 cloudflare/security-audit-skill（2026-11-07）；判据回流三分类 ← 蒸馏 docs/plans/skill-callability-r2.md（2026-11-08）；其余标「← 自定」的为本技能自身设计
 updated: 2026-11-09
 ---
@@ -181,6 +181,8 @@ updated: 2026-11-09
 - 用「可以考虑」「也许」「根据情况」软化关键指令：SkillLens 把这条列为三个质量维度之一（actionable specificity），软化措辞是让技能在真实使用时失效的主要写法。`← arXiv 2605.23899`
 - 清理后不比对分布：删过期映射、删冗余条目后必须比对「变化条数」，不为零就逐条解释，解释不通即回滚。`← skill-callability-r2 F5`
 - 验证命令没跑通就写进产物：写着「可跑这条命令」却没实测，等于伪造可验证性。`← skill-callability-r2 F5`
+- 只验「判据会响」不验「是谁响的」：断言写成「预期 check 出现在失败列表里」，被别的判据顺带拦下也算通过，是假验收。必须断言被判红的 check 集合与预期**全等**。`← 行为化门禁 2026-11-09`
+- 单人自由打分当生成力证据：D7 只报三轮多数与一致/分歧，不报分差与区间。`← D7 盲化 2026-11-09`
 - 跨形态比总分：拿同一把尺量「证据型产物」和「人格型产物」，分数差测的是形态不是质量。跨形态只允许比生成力（给新问题看能否作答）。`← 三派对照 2026-11-09`
 - 只写能力不写验证范围：产物通篇说「能做什么」，却不写「哪些没验证过」。读者会把未验证项当已验证项用。`← DisCo 补测 2026-11-09`
 - 引用外部方法论的效应量不查评测口径：只看「提升 134%」不看它把哪些成本排除在比较之外，等于替厂商背书。`← DisCo 评估 2026-11-09`
@@ -227,12 +229,14 @@ out/distill-<slug>/
 | `references/templates/mechanism.md` | mechanism 型产物模板 | `init --type mechanism` 后照它填 |
 | `references/templates/perspective.md` | perspective 型产物模板（含反例黑名单、失败模式与 Fallback 树两节） | 同上 |
 | `references/templates/rules.md` | rules 型产物模板（判据表/假阳性/门禁） | 同上 |
-| `scripts/distill.py` | 执行层 CLI，8 个入口（含 stamp） | 主入口，先跑 `--help` |
+| `scripts/distill.py` | 执行层 CLI，7 个叶子子命令（init/gate/index/evidence add/evidence rebind/scan/stamp） | 主入口，先跑 `--help` |
 | `scripts/gate.py` | 单文件门禁，可脱离 distill.py 独立跑 | `python scripts/gate.py <产物> --json` |
 | `scripts/anchorize.py` | 把正文里带标记行的路径锚点批量换成 E id | `python scripts/anchorize.py <产物目录> --dry-run` |
 | `scripts/teeth_audit.py` | 判据牙齿审计：列出从未被判红过的 check | 改完判据先跑一遍，缺反例就补 |
+| `scripts/d7_blind.py` | D7 盲化：生成遮蔽评分表、汇总三轮多数、揭盲 | 判生成力时用它，别自由打分 |
+| `references/d7-blind-protocol.md` | D7 五条判据、遮蔽规则、结论口径与污染声明 | 评 D7 前必读 |
 | `scripts/migrate_legacy.py` | 把旧产物的路径锚点迁进证据库 | `python scripts/migrate_legacy.py --help` |
-| `tests/run_gate_tests.py` | 门禁回归 33 例（CLI 级，验整份产物三态 + 分桶嵌套发现） | 改任何判据后必须跑 |
+| `tests/run_gate_tests.py` | 门禁回归 37 例（CLI 级三态 + 4 个变异夹具的 fired 集合全等 + 反向验证） | 改任何判据后必须跑 |
 | `tests/test_groups.py` | 5 个 `_check_*` 分组函数的函数级单测 | 改单个分组判据时先跑它，定位比 CLI 级快 |
 
 `scripts/gate.py` 被 `distill.py` import 而单独调用也能用；`migrate_legacy.py` 只在迁移旧产物时用一次，平时不用。

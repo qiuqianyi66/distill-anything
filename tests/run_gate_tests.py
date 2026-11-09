@@ -325,6 +325,36 @@ def main() -> int:
         print(f"{'ok  ' if hit_nested else 'FAIL'} {'nested-container':<16} expect=命中嵌套1份  got={len(rs)} 份 {where[-40:]}")
         failures += 0 if hit_nested else 1
 
+    # 变异夹具（2026-11-09 行为化门禁）：每条夹具只种一处缺陷，
+    # 断言「被判红的 check 集合恰好等于预期集合」（既不少红，也不许被别的判据顺带拦下）。
+    # 反向验证在同一用例里做：把对应判据临时放宽/关掉，该夹具必须转 PASS，否则说明它红在别的理由上。
+    sys.path.insert(0, str(gate.parent))
+    import gate as gate_mod
+
+    MUTATIONS = {
+        "mut-anchor-range": ("FAIL", {"anchor-liveness"}, ("resolve_anchor", lambda t, a: (True, "ok"))),
+        "mut-anchor-outside": ("FAIL", {"anchor-liveness"}, ("resolve_anchor", lambda t, a: (True, "ok"))),
+        "mut-marker-count": ("INCOMPLETE", {"markers"}, ("MARK_MIN", 0)),
+        "mut-anchor-count": ("INCOMPLETE", {"anchors"}, ("ANCHOR_MIN", 0)),
+    }
+    for name, (expect_status, expect_fired, patch) in MUTATIONS.items():
+        total += 1
+        data = run_gate_full(gate, root / "fixtures" / f"{name}.md")
+        fired = {c["name"] for c in data.get("checks", []) if c.get("ok") is False}
+        ok_forward = data.get("status") == expect_status and fired == expect_fired
+        attr, val = patch
+        orig = getattr(gate_mod, attr)
+        setattr(gate_mod, attr, val)
+        try:
+            back = gate_mod.check(root / "fixtures" / f"{name}.md")
+        finally:
+            setattr(gate_mod, attr, orig)
+        ok_back = back["status"] == "PASS"
+        ok = ok_forward and ok_back
+        print(f"{'ok  ' if ok else 'FAIL'} {name:<16} expect={expect_status}/{sorted(expect_fired)} "
+              f"got={data.get('status')}/{sorted(fired)} 反例={back['status']}")
+        failures += 0 if ok else 1
+
     print(f"\n{total - failures}/{total} 通过")
     return 1 if failures else 0
 
