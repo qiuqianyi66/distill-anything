@@ -1,7 +1,7 @@
 ---
 name: distill-anything
 description: 蒸馏一切——把任意对象（人、代码仓库、长文档、技能库、事故、对话日志、竞品、方法论流派）压成带证据锚点、未知台账、可证伪判据的可复用产物。Use when 用户说蒸馏X、逆向X、扒一个X、把X做成skill、提炼X的方法论。Don't use for 纯摘要（走 doubao-critical-reading-companion）、人物角色扮演（走 distilly）、代码库架构讲解（走 doubao-coding-analyze-codebase）。
-version: 1.1.9
+version: 1.1.10
 source: 三重验证/去名测试 ← alchaincyf/nuwa-skill v1.1.0；工厂式写入/质检不允许伪造 ← titanwings/distilly；证据三元/未知台账/覆盖≠存在 ← morluto/rea；双模式授权/不确定无等级 ← 蒸馏 cloudflare/security-audit-skill（2026-11-07）；判据回流三分类 ← 蒸馏 docs/plans/skill-callability-r2.md（2026-11-08）；其余标「← 自定」的为本技能自身设计
 updated: 2026-11-09
 ---
@@ -218,7 +218,7 @@ out/distill-<slug>/
 | `references/evidence-protocol.md` | 三层标记、锚点格式、纠正流程 | 按需读 |
 | `references/quality-gate.md` | 门禁阈值、判据修正记录、改红/改绿 | 按需读 |
 | `references/templates/mechanism.md` | mechanism 型产物模板 | `init --type mechanism` 后照它填 |
-| `references/templates/perspective.md` | perspective 型产物模板 | 同上 |
+| `references/templates/perspective.md` | perspective 型产物模板（含反例黑名单、失败模式与 Fallback 树两节） | 同上 |
 | `references/templates/rules.md` | rules 型产物模板（判据表/假阳性/门禁） | 同上 |
 | `scripts/distill.py` | 执行层 CLI，8 个入口（含 stamp） | 主入口，先跑 `--help` |
 | `scripts/gate.py` | 单文件门禁，可脱离 distill.py 独立跑 | `python scripts/gate.py <产物> --json` |
