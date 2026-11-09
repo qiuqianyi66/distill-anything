@@ -1,0 +1,3 @@
+{"id": "E-aaaa0001", "path": "src/lib.ts", "lines": "1-3", "level": "O", "statement": "boot 一次性注册", "quote_sha1": "8ba539a2bd8b", "observed_at": "2026-11-07", "source_ref": "t:fixture", "supports": []}
+{"id": "E-aaaa0002", "path": "src/lib.ts", "lines": "5-6", "level": "O", "statement": "路由表集中维护", "quote_sha1": "cb4676024558", "observed_at": "2026-11-07", "source_ref": "t:fixture", "supports": []}
+{"id": "E-aaaa0003", "path": "src/lib.ts", "lines": "9-10", "level": "O", "statement": "fallback 只记录", "quote_sha1": "3f0a4868d703", "observed_at": "2026-11-07", "source_ref": "t:fixture", "supports": []}
