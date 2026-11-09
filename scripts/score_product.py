@@ -52,10 +52,25 @@ def product_type(body, txt):
 
 
 def d1_structure(body, txt):
-    kind, need = product_type(body, txt)
-    hs = headings(body)
-    hit = [k for k in need if any(k in h for h in hs)]
-    return round(10 * len(hit) / len(need), 1), f"{kind} 段 {len(hit)}/{len(need)} 缺:{[k for k in need if k not in hit]}"
+    """D1 v2（2026-11-09 改）：按「信息项」判，不按我的模板段名判。
+
+    改因：跨派对照时，别的流派的产物结构天然不同；按本家模板段名计分会把
+    「结构异构」误判成「结构缺失」（D1=0 的假阴性）。这里只问七件事讲没讲清。
+    """
+    kws = [
+        ("范围/边界", ("范围", "边界", "适用", "scope", "不适用", "用于", "触发")),
+        ("决策/代价", ("决策", "代价", "取舍", "权衡", "tradeoff", "为什么这样")),
+        ("可搬/可执行", ("可搬", "可执行", "步骤", "流程", "机制", "workflow", "步骤", "模型", "判据")),
+        ("反例/不做", ("不搬", "禁止", "反例", "blacklist", "不要", "不适用场景")),
+        ("证据/来源", ("证据", "来源", "锚点", "source", "引用", "台账", "grounding")),
+        ("局限", ("诚实边界", "局限", "limitation", "不足", "做不到")),
+        ("未知", ("未知", "unknown", "待验证", "待确认", "需要什么")),
+    ]
+    low = "\n".join(body).lower()
+    hs = [h.lower() for h in headings(body)]
+    hit = [name for name, alts in kws if any(a.lower() in low for a in alts)]
+    miss = [name for name, alts in kws if not any(a.lower() in low for a in alts)]
+    return round(10 * len(hit) / len(kws), 1), f"信息项 {len(hit)}/{len(kws)} 缺:{miss}"
 
 
 def d2_evidence(body):
