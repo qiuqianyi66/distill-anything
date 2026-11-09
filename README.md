@@ -8,7 +8,7 @@
 
 [![Stars](https://img.shields.io/github/stars/qiuqianyi66/distill-anything?logo=github&label=Stars)](https://github.com/qiuqianyi66/distill-anything/stargazers)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=fff)](#)
-[![Tests](https://img.shields.io/badge/tests-30%20%2B%205%20groups-brightgreen)](#验收)
+[![Tests](https://img.shields.io/badge/tests-33%20%2B%205%20groups-brightgreen)](#验收)
 [![Version](https://img.shields.io/badge/skill-v1.1.9-blue)](SKILL.md)
 
 **[它是什么](#它是什么) · [三层结构](#三层结构) · [快速开始](#快速开始) · [门禁](#门禁四态) · [判据](#判据什么叫蒸出来了) · [验收](#验收) · [边界](#诚实边界)**
@@ -47,7 +47,7 @@ distill-anything/
 │   ├── anchorize.py         # 路径锚点批量换成证据 id
 │   └── migrate_legacy.py    # 老产物迁进证据库
 └── tests/
-    ├── run_gate_tests.py    # CLI 级回归 30 例
+    ├── run_gate_tests.py    # CLI 级回归 33 例
     └── test_groups.py       # 五个分组函数的函数级单测
 ```
 
@@ -100,7 +100,7 @@ python scripts/distill.py stamp out/distill-my-object/report.md
 ## 验收
 
 ```bash
-python tests/run_gate_tests.py   # 30/30
+python tests/run_gate_tests.py   # 33/33
 python tests/test_groups.py      # 5 组 / 全项通过
 ```
 

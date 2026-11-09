@@ -26,6 +26,11 @@ FILE_CASES = {
     "fm-mangled": "FAIL",
     # 外来文件：带第三方技能键且无 source 必须 SKIP，不是 INCOMPLETE。
     "foreign-file": "SKIP",
+    # 2026-11-09 反例审计补的三例：这三条判据此前从来没有被任何 fixture 打红过。
+    # 先由 runtime/.tmp/gate_teeth_audit.py 扫出「只出现 True、从无 False」的判据，再逐条补反例。
+    "banned-word": "FAIL",        # banned-words：裸用「优秀/毫无疑问」不加标记必须 VIOLATION
+    "unknown-thin": "INCOMPLETE",  # unknown-depth：未知台账第三条写成占位必须 GAP
+    "fm-partial": "INCOMPLETE",    # frontmatter：只有 name 没有 description 必须 GAP
 }
 
 DIR_CASES = {
