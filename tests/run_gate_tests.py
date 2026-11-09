@@ -83,6 +83,15 @@ def main() -> int:
         got, code = run_gate(gate, root / "fixtures" / name / "report.md")
         failures += report(name, expect, got, code)
 
+    # 降级路径是观察期判据：缺这一节不许改变三态（good.md 无兜底词，仍必须 PASS），
+    # 且 checks 里必须能看见它、ok 必须是 None（升成硬判就会变成惩罚历史）。
+    total += 1
+    detail = run_gate_full(gate, root / "fixtures" / "good.md")
+    fb = next((c for c in detail.get("checks", []) if c.get("name") == "section:降级路径"), {})
+    ok = detail.get("status") == "PASS" and fb and fb.get("ok") is None
+    print(f"{'ok  ' if ok else 'FAIL'} {'fallback-soft':<16} expect=PASS+ok:None got={detail.get('status')}/{fb.get('ok')}")
+    failures += 0 if ok else 1
+
     # 证据已变：复制 evidence-ok 后篡改被引用的行段，必须从 PASS 降到 INCOMPLETE
     total += 1
     with tempfile.TemporaryDirectory() as td:
