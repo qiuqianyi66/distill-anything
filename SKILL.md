@@ -1,7 +1,7 @@
 ---
 name: distill-anything
 description: 蒸馏一切——把任意对象（人、代码仓库、长文档、技能库、事故、对话日志、竞品、方法论流派）压成带证据锚点、未知台账、可证伪判据的可复用产物。Use when 用户说蒸馏X、逆向X、扒一个X、把X做成skill、提炼X的方法论。Don't use for 纯摘要（走 doubao-critical-reading-companion）、人物角色扮演（走 distilly）、代码库架构讲解（走 doubao-coding-analyze-codebase）。
-version: 1.1.17
+version: 1.1.18
 source: 三重验证/去名测试 ← alchaincyf/nuwa-skill v1.1.0；工厂式写入/质检不允许伪造 ← titanwings/distilly；证据三元/未知台账/覆盖≠存在 ← morluto/rea；双模式授权/不确定无等级 ← 蒸馏 cloudflare/security-audit-skill（2026-11-07）；判据回流三分类 ← 蒸馏 docs/plans/skill-callability-r2.md（2026-11-08）；其余标「← 自定」的为本技能自身设计
 updated: 2026-11-09
 ---
@@ -183,6 +183,7 @@ updated: 2026-11-09
 - 验证命令没跑通就写进产物：写着「可跑这条命令」却没实测，等于伪造可验证性。`← skill-callability-r2 F5`
 - 跨形态比总分：拿同一把尺量「证据型产物」和「人格型产物」，分数差测的是形态不是质量。跨形态只允许比生成力（给新问题看能否作答）。`← 三派对照 2026-11-09`
 - 只写能力不写验证范围：产物通篇说「能做什么」，却不写「哪些没验证过」。读者会把未验证项当已验证项用。`← DisCo 补测 2026-11-09`
+- 引用外部方法论的效应量不查评测口径：只看「提升 134%」不看它把哪些成本排除在比较之外，等于替厂商背书。`← DisCo 评估 2026-11-09`
 
 ## 5 失败兜底
 
