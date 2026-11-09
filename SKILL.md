@@ -1,7 +1,7 @@
----
+﻿---
 name: distill-anything
 description: 蒸馏一切——把任意对象（人、代码仓库、长文档、技能库、事故、对话日志、竞品、方法论流派）压成带证据锚点、未知台账、可证伪判据的可复用产物。Use when 用户说蒸馏X、逆向X、扒一个X、把X做成skill、提炼X的方法论。Don't use for 纯摘要（走 doubao-critical-reading-companion）、人物角色扮演（走 distilly）、代码库架构讲解（走 doubao-coding-analyze-codebase）。
-version: 1.1.10
+version: 1.1.11
 source: 三重验证/去名测试 ← alchaincyf/nuwa-skill v1.1.0；工厂式写入/质检不允许伪造 ← titanwings/distilly；证据三元/未知台账/覆盖≠存在 ← morluto/rea；双模式授权/不确定无等级 ← 蒸馏 cloudflare/security-audit-skill（2026-11-07）；判据回流三分类 ← 蒸馏 docs/plans/skill-callability-r2.md（2026-11-08）；其余标「← 自定」的为本技能自身设计
 updated: 2026-11-09
 ---
@@ -161,6 +161,9 @@ updated: 2026-11-09
 
 > 判据 6/7 只对「frontmatter name 以 `-perspective` 结尾」或「存在以『心智模型』为标题的节」的产物生效，机制型/判据型不参与——三类产物套同一口径会集体假红。`← 踩坑 11-08`
 
+8. **负迁移测试**：加任何一条新判据/新章节前，先问「最坏情况下它会不会让产物变差」。SkillLens 实测 75% 正收益、**25% 加了反而更差**，且强模型不等于好提取器——所以默认假设新增有风险，而不是默认新增有益。`← SkillLens arXiv 2605.23899`
+9. **降级测试**：产物必须写明「失败时退到哪」。思维型用失败模式与 Fallback 树（触发→一线修复→仍失败兜底），判据型用「仍失败兜底」列。只写正确路径、不写降级路径的产物，遇到检索失败或用户不认就没有出口。`← darwin / ponytail 实测`
+
 ## 4 反模式
 
 - 通篇形容词没有判据（「他很厉害」「这个项目很优秀」）。`← 自定`
@@ -175,6 +178,7 @@ updated: 2026-11-09
 - 只采正面材料：不主动去找对象的批评者与负面评价，产物就成了吹捧。`← 蒸馏 nuwa-skill examples 2026-11-08`
 - 产物不含防漂移：思维型产物不写「擅长 / 不擅长」与 Agentic Protocol，用户会在它能力圈外的地方拿到一个自信的错误答案。`← 同上`
 - 口径抄文档不现算：条数、占比、分布一律当场算，文档里写的旧数字当作过期。`← skill-callability-r2 F5`
+- 用「可以考虑」「也许」「根据情况」软化关键指令：SkillLens 把这条列为三个质量维度之一（actionable specificity），软化措辞是让技能在真实使用时失效的主要写法。`← arXiv 2605.23899`
 - 清理后不比对分布：删过期映射、删冗余条目后必须比对「变化条数」，不为零就逐条解释，解释不通即回滚。`← skill-callability-r2 F5`
 - 验证命令没跑通就写进产物：写着「可跑这条命令」却没实测，等于伪造可验证性。`← skill-callability-r2 F5`
 
