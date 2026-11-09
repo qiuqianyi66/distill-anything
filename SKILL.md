@@ -1,4 +1,4 @@
-﻿---
+---
 name: distill-anything
 description: 蒸馏一切——把任意对象（人、代码仓库、长文档、技能库、事故、对话日志、竞品、方法论流派）压成带证据锚点、未知台账、可证伪判据的可复用产物。Use when 用户说蒸馏X、逆向X、扒一个X、把X做成skill、提炼X的方法论。Don't use for 纯摘要（走 doubao-critical-reading-companion）、人物角色扮演（走 distilly）、代码库架构讲解（走 doubao-coding-analyze-codebase）。
 version: 1.1.11
