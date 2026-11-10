@@ -173,7 +173,7 @@ perspective 三项的反例注入：把 `MAX_MODELS` 由 7 改成 20，`persp-mo
 `section:降级路径` 只看字形（兜底 / fallback / 降级 / 失败模式），**只记不建议，不改变三态**。
 
 - 为什么先不加齿：实测 14 份产物里 6 份没有这一节。直接升成必需段 = 一次性把 6 份历史产物判红，等于惩罚历史，与「判据过度先豁免观察一轮」的纪律冲突。
-- 补齐进度（2026-11-09）：**14 份产物全部具备**该节（gate 实测 14/14）。最后一批补的是 trending 那三份子报告与 REPORT（边界失效兜底 3 条 / 只读到 README 层兜底 3 条 / 榜单失效兜底 5 条），此前补的 `distill-user-thinking`、`distill-distilly-repo` 各 5 条、`distill-method-schools` 与 `distill-nuwa-method` 原有。
+- 补齐进度（2026-11-10 复核）：**18 份产物全部具备**该节（`distill gate runtime\out --recursive` 实测 18/18）。这条决定了升 block 的产物侧代价已经归零——不再有「升判据=惩罚历史」的问题，剩下的只是 13 个 fixture 与守卫反写。最后一批补的是 trending 那三份子报告与 REPORT（边界失效兜底 3 条 / 只读到 README 层兜底 3 条 / 榜单失效兜底 5 条），此前补的 `distill-user-thinking`、`distill-distilly-repo` 各 5 条、`distill-method-schools` 与 `distill-nuwa-method` 原有。
 - **是否升硬判：暂不升，理由与代价已量化**。产物侧条件已满足，但一旦升为必需段，`tests/fixtures` 里 **13 个样例全部要加兜底段**（现在一个都没有），`fallback-soft` 守卫也要反过来重写；那是把一次判据升级变成一次 fixture 重构，收益（多拦一类缺失）小于风险（改写样例会动到每条判据的既有语境）。留作待拍板项，需要时按「先加守卫反例、再改判据、最后批量补样例」三步走。
 - 依据：SkillLens 三元件之一 failure-mechanism encoding；达尔文的五 judge 对照里「边界条件覆盖」「检查点设计」是劣化最猛的两维（-5.8 / -6.4），说明这一节确实是质量杠杆而不是装饰。
 - 升级条件：等剩下的口径也定下来（子报告各自补 or 明确由 REPORT 统一承载）后，再考虑升为必需段；升级时必须先让回归变红（`fallback-soft` 这例就是防止有人偷偷把它改成硬判的守卫）。
