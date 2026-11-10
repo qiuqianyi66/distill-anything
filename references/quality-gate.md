@@ -235,6 +235,7 @@ perspective 三项的反例注入：把 `MAX_MODELS` 由 7 改成 20，`persp-mo
   - `write-integrity` 在「容器有基线、这张产物没有 stamp 记录」时曾报「与基线一致」——**这是最危险的一条：把没验过说成验过**，已改 `ok=None`。
 - 剩下 126 条格式门里，`section:*` / `frontmatter` / `size` 是设计上的结构判据（本来就该只看排版），`banned-words` 是禁令类（空文档不违规是真话）。真正该被质疑的格式门已经清零。
 - 纪律：新增判据时必须自问一句「把内容掏空，它还过不过」；过，就说明它验的是排版，得在 `references/quality-gate.md` 里写明理由，否则不要加。
+- 口径提醒：`gate_probe.py --recursive` 自己按「父目录名以 distill- 开头」找产物，会扫到 gate 不管的 md（本次 26 份 vs gate 18 份）。要报可比数字，先把 `distill gate --recursive --json` 的 target 清单喂给它，diff 会很大，别混着说。
 - 回归：`tests/run_gate_tests.py` 的 `hollow-probe` 断言「掏空后不许 PASS，且 conclusions/refs/links/write-integrity 不得计入格式门」。
 
 ## 已知局限（不要当成全覆盖）
