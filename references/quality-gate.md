@@ -168,9 +168,9 @@ perspective 三项的反例注入：把 `MAX_MODELS` 由 7 改成 20，`persp-mo
 - 想让产物变绿：给结论补真实锚点，删掉无法锚定的评价句。**禁止**为了过门禁把锚点写成站点根、搜索页或臆造路径。
 - 改阈值 = 改判据，必须同步改本文件并重跑 `tests/run_gate_tests.py`，否则下一个人无法判断是产物退化了还是门禁放宽了。
 
-## 已观察未加齿：降级路径（2026-11-09）
+## 降级路径：已升为必需段（2026-11-10）
 
-`section:降级路径` 只看字形（兜底 / fallback / 降级 / 失败模式），**只记不建议，不改变三态**。
+`section:降级路径` 只看字形（兜底 / fallback / 降级 / 失败模式）。**2026-11-10 已从观察期（warn）升为必需段（GAP）：缺这一节 → INCOMPLETE**。判定口径见下面「为什么这次能升」。
 
 - 为什么先不加齿：实测 14 份产物里 6 份没有这一节。直接升成必需段 = 一次性把 6 份历史产物判红，等于惩罚历史，与「判据过度先豁免观察一轮」的纪律冲突。
 - 补齐进度（2026-11-10 复核）：**18 份产物全部具备**该节（`distill gate runtime\out --recursive` 实测 18/18）。这条决定了升 block 的产物侧代价已经归零——不再有「升判据=惩罚历史」的问题，剩下的只是 13 个 fixture 与守卫反写。最后一批补的是 trending 那三份子报告与 REPORT（边界失效兜底 3 条 / 只读到 README 层兜底 3 条 / 榜单失效兜底 5 条），此前补的 `distill-user-thinking`、`distill-distilly-repo` 各 5 条、`distill-method-schools` 与 `distill-nuwa-method` 原有。
@@ -260,6 +260,18 @@ untime/out/skills-governance/distill-cross-compare/notes/d7-blind-5q.md。
   否则它红在别的理由上，等于假验收。
 - 骨架：`distill init <slug> --type refuse`；模板 `references/templates/refuse.md`。
 - `refuse-shape` 判红时直接收口（后面的理由/标记不再判）：声明与正文自相矛盾时，那些细节判了也没意义。
+
+
+### 为什么这次能升（代价已核清）
+
+- 产物侧：`distill gate runtime\out --recursive` 实测 **18/18 都具备该节**，升上去不再「惩罚历史」——2026-11-09 那次没升就是因为当时 14 份里 6 份缺。
+- fixture 侧：17 个 md 夹具统一补了 `## 失败兜底` 段（不补的只有 `refuse-*`（走克制型判据）与 `score-*`（不进门禁））。
+- 守卫反写：`fallback-soft`（旧守护，断言「缺了也 PASS」）换成两条：
+  - `fallback-hard`：good.md 有兜底段 → PASS 且该 check 为 True；
+  - `fallback-teeth`：把兜底段改成「## 附注 / - 无」（**保持行数不变**）→ 必须 INCOMPLETE 且 fired 集合全等 `{section:降级路径}`。
+    这条是牙齿：只断言正向的话，有人把判据偷偷改回 warn 也照样绿。
+- 踩坑两条（写下来免得重犯）：① 探针若挪到临时目录跑，相对锚点全部解析不到，`anchor-liveness` 会替这条判据把红判了（实测 `FAIL/['anchor-liveness','section:降级路径']`）；② 探针若靠删词造缺失，行号锚点整体位移，同样会混进 `anchor-liveness`——所以只能等价替换、保持行数。
+- 空心探针侧的影响：这一节仍只看字形，掏空后标题还在，因此格式占比从 52% 升到 **56%（格式门 138 / 验内容 108）**。它属于「设计上就该只看排版」的那一类，不列入「假装验过」名单。
 
 ## 两级严重度：block 与 warn（2026-11-10）
 

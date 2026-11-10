@@ -464,16 +464,17 @@ def _check_identity(ctx):
         checks.append({"name": f"section:{group}", "ok": hit, "detail": "命中" if hit else "缺失"})
         if not hit:
             gaps.append(f"缺「{group}」段")
-    # 2a 降级路径：观察期判据，只记不建议（不改变三态结论）。
+    # 2a 降级路径：2026-11-10 由观察期升为必需段（GAP，不改：缺了就 INCOMPLETE）。
     # 依据：SkillLens 三元件之一「失败模式编码」+ darwin 实测把「边界条件/检查点」列为最易劣化两维。
-    # 未直接升为必需段：2026-11-09 实测 14 份产物里 6 份没有这一节，硬判会变成惩罚历史。
+    # 升的代价已核清：产物侧 18/18 都具备（不再惩罚历史），剩下 13 个 fixture 已补兜底段。
     fb_hit = any(k.lower() in joined.lower() for k in FALLBACK_KEYS)
     checks.append({
         "name": "section:降级路径",
         "ok": fb_hit,
-        "warn": True,
-        "detail": "命中" if fb_hit else "缺失（warn：只记不建议，不改三态）",
+        "detail": "命中" if fb_hit else "缺「兜底/降级/失败模式」段",
     })
+    if not fb_hit:
+        gaps.append("缺「降级路径」段（触发→一线修复→仍失败兜底）")
     # 2b perspective 结构（条件触发，机制型/判据型不参与）
     ms, me = section_bounds(body, "心智模型")
     is_persp = (fm.get("name") or "").rstrip().endswith("-perspective") or ms is not None

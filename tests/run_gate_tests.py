@@ -88,17 +88,34 @@ def main() -> int:
         got, code = run_gate(gate, root / "fixtures" / name / "report.md")
         failures += report(name, expect, got, code)
 
-    # 降级路径是观察期判据：缺这一节不许改变三态（good.md 无兜底词，仍必须 PASS），
-    # 且 checks 里必须能看见它、ok 必须是 False + warn:True（2026-11-10 改口径：
-    # 用 None 表示「没查」，会让「查了但缺失」和「没数据」混在一起；warn 才分得清）。
-    total += 1
+    # 降级路径已于 2026-11-10 从观察期升为必需段（GAP）。守卫改为正反两面：
+    # ① good.md 有兜底段 → PASS 且该 check 为 True；
+    # ② 把兜底词全部抹掉 → 必须 INCOMPLETE 且 fired 集合全等 {section:降级路径}。
+    # ②是牙齿：只断言 ① 的话，判据被谁偷偷改回 warn 级也照样绿。
+    total += 2
     detail = run_gate_full(gate, root / "fixtures" / "good.md")
     fb = next((c for c in detail.get("checks", []) if c.get("name") == "section:降级路径"), {})
-    ok = (detail.get("status") == "PASS" and fb and fb.get("ok") is False
-          and fb.get("warn") is True)
-    print(f"{'ok  ' if ok else 'FAIL'} {'fallback-soft':<16} expect=PASS+ok:False+warn "
-          f"got={detail.get('status')}/{fb.get('ok')}/{fb.get('warn')}")
+    ok = detail.get("status") == "PASS" and fb.get("ok") is True
+    print(f"{'ok  ' if ok else 'FAIL'} {'fallback-hard':<16} expect=PASS+ok:True got={detail.get('status')}/{fb.get('ok')}")
     failures += 0 if ok else 1
+    with tempfile.TemporaryDirectory() as td:
+        src = (root / "fixtures" / "good.md").read_text(encoding="utf-8")
+        # 只把兜底段改名成不带关键词的等价段，**保持行数不变**：
+        # 直接删词会让 good.md 的行号锚点整体位移，fired 里混进 anchor-liveness，测的就不是这条判据了。
+        src = src.replace("\n## 失败兜底\n\n- 兜底：降级为观察期\n", "\n## 附注\n\n- 无\n")
+        # 探针必须留在 fixtures 目录里跑：挪到临时目录后相对锚点全部解析不到，
+        # anchor-liveness 会替这条判据把红判了（实测踩过：FAIL/['anchor-liveness','section:降级路径']）。
+        probe = root / "fixtures" / "_fallback.probe.md"
+        probe.write_text(src, encoding="utf-8")
+        try:
+            got_full = run_gate_full(gate, probe)
+        finally:
+            probe.unlink(missing_ok=True)
+        fired = {c["name"] for c in got_full.get("checks", []) if c.get("ok") is False}
+        ok = got_full.get("status") == "INCOMPLETE" and fired == {"section:降级路径"}
+        print(f"{'ok  ' if ok else 'FAIL'} {'fallback-teeth':<16} expect=INCOMPLETE/[section:降级路径] "
+              f"got={got_full.get('status')}/{sorted(fired)}")
+        failures += 0 if ok else 1
 
     # 证据已变：复制 evidence-ok 后篡改被引用的行段，必须从 PASS 降到 INCOMPLETE
     total += 1
@@ -237,7 +254,8 @@ def main() -> int:
             "| 无 | 无 | 无 |\n\n## 3 诚实边界\n"
             "- 补充结论一，指向同一处证据 [O] raw/ok.md:1\n"
             "- 补充结论二，指向同一处证据 [O] raw/ok.md:1\n"
-            "- 补充结论三，指向同一处证据 [O] raw/ok.md:1\n"
+            "- 补充结论三，指向同一处证据 [O] raw/ok.md:1\n\n"
+            "## 4 降级路径\n- 链接检查失败时降级为人工核对\n"
         )
         md = dst / "report.md"
         md.write_text(base + "- 见 [第一节](raw/ok.md#第一节)\n", encoding="utf-8")

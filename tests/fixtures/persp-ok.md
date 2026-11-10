@@ -68,3 +68,7 @@ source: out/distill-sample/fixtures/good.md
 
 ## 回答工作流（Agentic Protocol）
 - 先分类问题，再按对象检索，最后作答；检索过程不输出 [O] src/config.ts:5
+
+## 失败兜底
+
+- 兜底：降级为观察期

@@ -9,3 +9,7 @@ allowed-tools: Read, Write
 # Foreign Demo
 
 这是一份外来技能文件，不是 distill-anything 产物。gate 应判 SKIP。
+
+## 失败兜底
+
+- 兜底：降级为观察期
