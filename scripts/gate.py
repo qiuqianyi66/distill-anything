@@ -470,8 +470,9 @@ def _check_identity(ctx):
     fb_hit = any(k.lower() in joined.lower() for k in FALLBACK_KEYS)
     checks.append({
         "name": "section:降级路径",
-        "ok": True if fb_hit else None,
-        "detail": "命中" if fb_hit else "缺失（建议补：触发→一线修复→仍失败兜底）",
+        "ok": fb_hit,
+        "warn": True,
+        "detail": "命中" if fb_hit else "缺失（warn：只记不建议，不改三态）",
     })
     # 2b perspective 结构（条件触发，机制型/判据型不参与）
     ms, me = section_bounds(body, "心智模型")
@@ -530,8 +531,9 @@ def _check_identity(ctx):
         has_agentic = ("Agentic" in joined) or ("回答工作流" in joined)
         checks.append({
             "name": "persp:agentic",
-            "ok": True if has_agentic else None,
-            "detail": "命中" if has_agentic else "缺失（建议补：分类→按对象检索→作答，且检索过程不输出）",
+            "ok": has_agentic,
+            "warn": True,
+            "detail": "命中" if has_agentic else "缺失（warn：建议补 分类→按对象检索→作答，且检索过程不输出）",
         })
 
 
@@ -884,8 +886,10 @@ def check(target: Path, strict_anchor: bool = False):
 
     violations, gaps = ctx.violations, ctx.gaps
     status = "FAIL" if violations else ("INCOMPLETE" if gaps else "PASS")
+    # 两级：warn 判据红了只记录，不进 violations/gaps，因此不改三态（观察期判据用这个口）
+    warns = [c["name"] for c in ctx.checks if c["ok"] is False and c.get("warn")]
     return {"status": status, "target": str(target), "checks": ctx.checks,
-            "gaps": gaps, "violations": violations}
+            "warns": warns, "gaps": gaps, "violations": violations}
 
 def main():
     ap = argparse.ArgumentParser(description="distill-anything evidence gate")
@@ -916,6 +920,8 @@ def main():
             print(f"  {c['name']:<28} {mark:<10} {c['detail']}{warn}")
         for g in result["gaps"]:
             print(f"  gap: {g}")
+        if result.get("warns"):
+            print(f"  warn: {len(result['warns'])} 条（不阻断）：" + ", ".join(result["warns"]))
         for v in result["violations"]:
             print(f"  violation: {v}")
         if result["violations"]:

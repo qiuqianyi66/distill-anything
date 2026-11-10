@@ -177,7 +177,7 @@ perspective 三项的反例注入：把 `MAX_MODELS` 由 7 改成 20，`persp-mo
 - **是否升硬判：暂不升，理由与代价已量化**。产物侧条件已满足，但一旦升为必需段，`tests/fixtures` 里 **13 个样例全部要加兜底段**（现在一个都没有），`fallback-soft` 守卫也要反过来重写；那是把一次判据升级变成一次 fixture 重构，收益（多拦一类缺失）小于风险（改写样例会动到每条判据的既有语境）。留作待拍板项，需要时按「先加守卫反例、再改判据、最后批量补样例」三步走。
 - 依据：SkillLens 三元件之一 failure-mechanism encoding；达尔文的五 judge 对照里「边界条件覆盖」「检查点设计」是劣化最猛的两维（-5.8 / -6.4），说明这一节确实是质量杠杆而不是装饰。
 - 升级条件：等剩下的口径也定下来（子报告各自补 or 明确由 REPORT 统一承载）后，再考虑升为必需段；升级时必须先让回归变红（`fallback-soft` 这例就是防止有人偷偷把它改成硬判的守卫）。
-- 回归：`tests/run_gate_tests.py` 的 `fallback-soft` 断言「无兜底词的 good.md 仍 PASS 且该 check 的 ok 为 None」。
+- 回归：`tests/run_gate_tests.py` 的 `fallback-soft` 断言「无兜底词的 good.md 仍 PASS，且该 check 的 ok 为 False、warn 为 True」。
 
 ## 判据牙齿审计（2026-11-09）
 
@@ -187,7 +187,7 @@ perspective 三项的反例注入：把 `MAX_MODELS` 由 7 改成 20，`persp-mo
 - 审计结果：21 条判据里 9 条从未在 fixture 上判红。逐条分诊后——
   - **真没牙齿，已补 3 例**：`banned-words`（新增 `banned-word.md` → FAIL）、`unknown-depth`（`unknown-thin.md` → INCOMPLETE）、`frontmatter` 的不完整分支（`fm-partial.md` → INCOMPLETE）。回归 30 → **33/33**。
   - **fixture 里没红，但 main() 里有动态用例**：`links`（LINK-404 → FAIL）、`strict-anchor`（未 E 化 → INCOMPLETE，收口后 → PASS）、`write-integrity`（stamp 后篡改 → GAP）。这三条不算无齿，只是不在 fixture 目录里。
-  - **有意无齿**：`size` 只带 `warn` 标记、不改变三态（体积大不等于不合格，只提示）；`persp:agentic` 与 `section:降级路径` 是观察期判据，ok 恒为 None 或 True。
+  - **有意无齿**（2026-11-10 改口径）：`size` / `persp:agentic` / `section:降级路径` 三条走 `warn` 级——判红只记录、不进 violations/gaps，因此不改三态。原先用 `ok: None` 表示这件事，但 None 同时表示「没有数据可查」，两种含义混在一起分不出「查了但缺失」与「没东西可查」。
 - 纪律：新增任何判据，必须在同一次提交里给出一个能把它打红的用例；否则它只是一句愿望。
 
 ## 从「验形态」到「验行为」：集合断言四例（2026-11-09）
@@ -260,6 +260,18 @@ untime/out/skills-governance/distill-cross-compare/notes/d7-blind-5q.md。
   否则它红在别的理由上，等于假验收。
 - 骨架：`distill init <slug> --type refuse`；模板 `references/templates/refuse.md`。
 - `refuse-shape` 判红时直接收口（后面的理由/标记不再判）：声明与正文自相矛盾时，那些细节判了也没意义。
+
+## 两级严重度：block 与 warn（2026-11-10）
+
+搬自 skills-eval（athola/claude-night-market）的门行为分流：它把维度分成「失败就 block 部署」与「失败只 warn」两档，
+不把一切缺陷压成同一个布尔。我方对应实现是 checks 项的 `warn` 字段：
+
+- **block 级**（默认）：判红进 `violations` / `gaps`，直接改变三态。
+- **warn 级**（`"warn": True`）：判红**不进** violations / gaps，三态不变；JSON 里多一个 `warns` 数组，人类可读输出多一行 `warn: N 条（不阻断）`。
+- 区别的用处：一条新判据要先把「红过多少次」看清才敢硬判（`section:降级路径` 的升格就卡在这一步）；warn 级让它现在就能被观察和计数，且不会把历史产物一夜判死。
+- 三条在用：`size`（体积大不等于不合格）、`section:降级路径`（观察期）、`persp:agentic`（建议补、不拦）。
+- 纪律：`warn` 级判据红了必须有登记，写明「什么条件下升 block」；否则它就是永久的装饰。当前登记：
+  `section:降级路径` 升 block 的条件是「子报告各自补 or 由 REPORT 统一承载」的口径定下来，且先补 13 个 fixture 的兜底段。
 
 ## 已知局限（不要当成全覆盖）
 
