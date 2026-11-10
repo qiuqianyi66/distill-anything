@@ -26,7 +26,7 @@ EID_RE = re.compile(r"E-[0-9a-f]{8}")
 ANCHOR_RE = re.compile(
     r"[A-Za-z0-9_\-./\\]+\.(?:md|ts|tsx|js|jsx|mjs|cjs|py|json|go|java|kt|rs|ps1|sh|yaml|yml|toml|sql|txt|csv|html):\d+(?:-\d+)?"
 )
-TYPE_DIR = {"mechanism": "mechanism", "perspective": "perspective", "rules": "rules"}
+TYPE_DIR = {"mechanism": "mechanism", "perspective": "perspective", "rules": "rules", "refuse": "refuse"}
 
 SKELETON_MECHANISM = """---
 name: {slug}
@@ -140,10 +140,33 @@ source: {src}
 | （待填） |  |  |
 """
 
+SKELETON_REFUSE = """---
+name: {slug}
+description: 判定 <对象> 不值得蒸馏，并说明凭什么这么判。
+decision: refuse
+source: {src}
+---
+
+# {slug}：不蒸
+
+## 判断
+（待填：不蒸 / 只蒸某一层 / 先补材料再蒸）
+
+## 理由（至少 3 条，每条要能判真假）
+- （待填：从对象自身读到的证据 + 锚点，说明为什么撑不起一份产物）
+
+## 未知台账
+
+| 未知 | 为什么解不了 | 需要什么才能解 |
+|---|---|---|
+| （待填：要蒸它还缺什么） |  |  |
+"""
+
 SKELETONS = {
     "mechanism": SKELETON_MECHANISM,
     "perspective": SKELETON_PERSPECTIVE,
     "rules": SKELETON_RULES,
+    "refuse": SKELETON_REFUSE,
 }
 
 CANDIDATES = """# 候选台账

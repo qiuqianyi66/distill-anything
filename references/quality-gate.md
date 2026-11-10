@@ -217,7 +217,8 @@ perspective 三项的反例注入：把 `MAX_MODELS` 由 7 改成 20，`persp-mo
 - 结论口径已降级：**只报「三轮多数 + 一致/分歧」，不报分差与置信区间**——单人三轮撑不起区间，报出来是装饰。
 - pilot（1 个问题 × 4 臂 × 3 轮，n=1）：产物最好 5 分 vs 空臂 3 分（差 2，可区分）；三派之间 5 vs 4（差 1，不可区分）。详见 `runtime/out/skills-governance/distill-cross-compare/notes/d7-blind-pilot.md`。
 - 已知污染：评审者就是产物作者。遮蔽压得住「记得出处」，压不住「记得自己写过什么」，所以这只是标定，不是结论。
-- **扩样（2026-11-10）**：5 问题 × 4 臂 × **独立评审者**（评者只看匿名文本，禁止打开映射）。均值：darwin 4.2 / 现行流程 4.0 / DisCo 3.6 / 空臂 2.4 → 产物 vs 空臂差 1.6（可区分），三派之间差 ≤0.6（不可区分）。同一批文本自评比独立评审高 1–2 分，差额集中在「边界」一条：**作者看得见自己的边界，别人看不见**。结论：D7 只能横向比「有方法 vs 没方法」，不能给流派排名。详见 untime/out/skills-governance/distill-cross-compare/notes/d7-blind-5q.md。
+- **扩样（2026-11-10）**：5 问题 × 4 臂 × **独立评审者**（评者只看匿名文本，禁止打开映射）。均值：darwin 4.2 / 现行流程 4.0 / DisCo 3.6 / 空臂 2.4 → 产物 vs 空臂差 1.6（可区分），三派之间差 ≤0.6（不可区分）。同一批文本自评比独立评审高 1–2 分，差额集中在「边界」一条：**作者看得见自己的边界，别人看不见**。结论：D7 只能横向比「有方法 vs 没方法」，不能给流派排名。详见 
+untime/out/skills-governance/distill-cross-compare/notes/d7-blind-5q.md。
 
 ## 掏空探针：哪些门只认排版（2026-11-10）
 
@@ -237,6 +238,28 @@ perspective 三项的反例注入：把 `MAX_MODELS` 由 7 改成 20，`persp-mo
 - 纪律：新增判据时必须自问一句「把内容掏空，它还过不过」；过，就说明它验的是排版，得在 `references/quality-gate.md` 里写明理由，否则不要加。
 - 口径提醒：`gate_probe.py --recursive` 自己按「父目录名以 distill- 开头」找产物，会扫到 gate 不管的 md（本次 26 份 vs gate 18 份）。要报可比数字，先把 `distill gate --recursive --json` 的 target 清单喂给它，diff 会很大，别混着说。
 - 回归：`tests/run_gate_tests.py` 的 `hollow-probe` 断言「掏空后不许 PASS，且 conclusions/refs/links/write-integrity 不得计入格式门」。
+
+## 克制型产物：该蒸不该蒸本身也要验（2026-11-10）
+
+搬自 ronce-racine 的 `limit` 场景：三场景里最缺的那个是「正确答案是克制」——不适用、证据不足、别动手。
+它的原话是，缺了这一档，就没有哪个技能能靠「本不该产出却产出了」而失败。
+
+我方落地：产物 frontmatter 写 `decision: refuse` 即进入克制型判据，走另一套阈值（不要求 8 标记 / 5 锚点）。
+
+| 判据 | 红/黄条件 | 为什么是这条 |
+|---|---|---|
+| `refuse-shape` | 正文命中 ≥4 个模板节 → FAIL | 声明不蒸却写齐全套，是把 refuse 当免检通行证 |
+| `refuse-reasons` | 可判真假的理由 <3 条 → INCOMPLETE | 说不出为什么不该蒸，等于没做判断 |
+| `refuse-marks` | 0 处 `[O]/[D]/[I]` → INCOMPLETE | 判断靠证据层级，不靠语气 |
+| `refuse-anchors` | 可解析锚点 <2 → INCOMPLETE；有死锚点 → FAIL | 拒蒸也必须证明「读到了哪一层才判定」 |
+| `section:未知台账` | 缺失 → INCOMPLETE | 「要蒸它还缺什么」是拒蒸的交付物 |
+
+- 三条夹具：`refuse-ok`（PASS）/ `refuse-thin`（INCOMPLETE，三黄）/ `refuse-fake`（FAIL，只红 refuse-shape）。
+- 双向反证（`tests/run_gate_tests.py` 的 `REFUSE_CASES`）：`refuse-ok` 把 `REFUSE_REASONS_MIN` 收到 99 必须转红；
+  `refuse-fake` 把 `REFUSE_SHAPE_MAX` 放到 99 必须转绿；`refuse-thin` 三条阈值同时归零必须转绿——
+  否则它红在别的理由上，等于假验收。
+- 骨架：`distill init <slug> --type refuse`；模板 `references/templates/refuse.md`。
+- `refuse-shape` 判红时直接收口（后面的理由/标记不再判）：声明与正文自相矛盾时，那些细节判了也没意义。
 
 ## 已知局限（不要当成全覆盖）
 

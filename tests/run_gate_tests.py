@@ -355,6 +355,36 @@ def main() -> int:
               f"got={data.get('status')}/{sorted(fired)} 反例={back['status']}")
         failures += 0 if ok else 1
 
+    # 克制型产物（decision: refuse，对应 ronce-racine 的 limit 场景）：三条用例分别验
+    # 「该蒸的判据说得清 → PASS」「说不清 → INCOMPLETE」「拿不蒸当免检又写全套 → FAIL」。
+    # 每条都做反向：放宽对应阈值必须转 PASS，收紧必须转红，否则它红在别的理由上。
+    REFUSE_CASES = {
+        "refuse-ok": ("PASS", set(), [("REFUSE_REASONS_MIN", 99)], "INCOMPLETE", {"refuse-reasons"}),
+        "refuse-fake": ("FAIL", {"refuse-shape"}, [("REFUSE_SHAPE_MAX", 99)], "PASS", set()),
+        "refuse-thin": ("INCOMPLETE", {"refuse-reasons", "refuse-marks", "refuse-anchors"},
+                        [("REFUSE_REASONS_MIN", 0), ("REFUSE_MARKS_MIN", 0), ("REFUSE_ANCHORS_MIN", 0)],
+                        "PASS", set()),
+    }
+    for name, (exp_st, exp_fired, patches, back_st, back_fired) in REFUSE_CASES.items():
+        total += 1
+        data = run_gate_full(gate, root / "fixtures" / f"{name}.md")
+        fired = {c["name"] for c in data.get("checks", []) if c.get("ok") is False}
+        ok_forward = data.get("status") == exp_st and fired == exp_fired
+        saved = [(a, getattr(gate_mod, a)) for a, _ in patches]
+        for a, v in patches:
+            setattr(gate_mod, a, v)
+        try:
+            back = gate_mod.check(root / "fixtures" / f"{name}.md")
+        finally:
+            for a, v in saved:
+                setattr(gate_mod, a, v)
+        back_fired = {c["name"] for c in back["checks"] if c.get("ok") is False}
+        ok_back = back["status"] == back_st and back_fired == back_fired
+        ok = ok_forward and ok_back
+        print(f"{'ok  ' if ok else 'FAIL'} {name:<16} expect={exp_st}/{sorted(exp_fired)} "
+              f"got={data.get('status')}/{sorted(fired)} 反例={back['status']}/{sorted(back_fired)}")
+        failures += 0 if ok else 1
+
     # 掏空探针（来源：ronce-racine `eval:probe` 的思路）：把 good 产物按结构保留、内容全掏空后
     # 再过门禁。① 不许 PASS（否则门禁只认排版）；② conclusions/refs/links 这类「没事可查就报 True」
     # 的检查必须变成 None——空文档不该拿「全部可达」。

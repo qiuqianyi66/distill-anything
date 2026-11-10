@@ -50,6 +50,13 @@ EVIDENCE_MIN_FOR_STRICT = 5
 # 但自带的质检脚本从不检查这一条。超过上限=该删没删（VIOLATION），不足=没蒸出来（GAP）。
 MIN_MODELS = 3
 MAX_MODELS = 7
+# 克制型产物（frontmatter `decision: refuse`，对应 ronce-racine 的 `limit` 场景）阈值：
+# 这类产物天然短，所以不套 8 标记 / 5 锚点那套；但拒绝理由、标记、锚点三条得有下限，
+# 否则「不蒸」会变成没读就下结论的免检通行证。抽成常量是为了让测试能反向放宽。
+REFUSE_SHAPE_MAX = 3      # 模板节命中 ≥4 个 = 声明不蒸却在产全套（VIOLATION）
+REFUSE_REASONS_MIN = 3    # 可判真假的拒绝理由下限
+REFUSE_MARKS_MIN = 1
+REFUSE_ANCHORS_MIN = 2
 # 外来技能文件的 frontmatter 特征键。这些键只出现在第三方技能（如 distilly 原版 SKILL.md），
 # 我方产物的 frontmatter 只有 name/description/source/updated。
 # 判定必须同时要求「缺 source」：source 是我方产物的必备键，单靠外来键会把带 source 的
@@ -735,6 +742,82 @@ def _check_references(ctx):
         checks.append({"name": "unknown-depth", "ok": None, "detail": "无数据行（缺台账已由 section 检查报）"})
 
 
+REFUSE_VALUES = ("refuse", "reject", "skip", "不蒸", "拒蒸", "不推荐")
+# 模板节关键词：一份自称「不蒸」的产物如果仍写齐这些节，说明它只是换了个标题在产全套内容
+TEMPLATE_SECTIONS = ("结构地图", "关键决策", "可搬机制", "明确不搬", "心智模型",
+                     "决策启发式", "判据表", "假阳性排除", "根因层", "防复发门禁",
+                     "证据台账", "诚实边界", "未知台账")
+
+
+def is_refuse(fm):
+    """frontmatter 声明 decision: refuse —— 本对象的正解是「不蒸」。"""
+    return str(fm.get("decision", "")).strip().lower() in REFUSE_VALUES
+
+
+def _check_refuse(ctx):
+    """克制型产物：该蒸不该蒸的判断本身。对应 ronce-racine 的 `limit` 场景。
+
+    这类产物天然短，所以不要求 8 标记 / 5 锚点；但必须付三样东西：
+    ① 至少 3 条能判真假的拒绝理由；② 至少 1 处标记；③ ≥2 个能解析的锚点（证明「读过才判」）。
+    另外两条反作弊：正文若写齐模板节（≥4 个），或段落数达到完整产物规模，就不算克制。
+    """
+    checks, violations, gaps = ctx.checks, ctx.violations, ctx.gaps
+    body, joined, fm, target = ctx.body, ctx.joined, ctx.fm, ctx.target
+
+    hits = sum(1 for s in TEMPLATE_SECTIONS if s in joined)
+    if hits >= REFUSE_SHAPE_MAX + 1:
+        checks.append({"name": "refuse-shape", "ok": False, "kind": "VIOLATION",
+                       "detail": f"声明不蒸，但正文写齐 {hits} 个模板节"})
+        violations.append("声明 decision: refuse 却仍产出完整产物：要么删掉正文只留判断，要么去掉 refuse 声明按正式产物写")
+        # 声明与正文自相矛盾时，后面的理由/标记再判也没意义，直接收口
+        return
+    else:
+        checks.append({"name": "refuse-shape", "ok": True, "detail": f"{hits} 个模板节"})
+
+    # 理由：找带「理由/为什么/不蒸/判断」的节，或全文的编号/项目列表
+    sec_lines, in_sec = [], False
+    for ln in body:
+        s = ln.strip()
+        if s.startswith("#"):
+            in_sec = any(k in s for k in ("理由", "为什么", "判断", "不蒸", "结论"))
+            continue
+        if in_sec and s:
+            sec_lines.append(s)
+    reasons = [s for s in sec_lines if len(re.sub(r"[^\w\u4e00-\u9fa5]", "", s)) >= 10]
+    if len(reasons) >= REFUSE_REASONS_MIN:
+        checks.append({"name": "refuse-reasons", "ok": True, "detail": f"{len(reasons)} 条"})
+    else:
+        checks.append({"name": "refuse-reasons", "ok": False, "kind": "GAP",
+                       "detail": f"{len(reasons)}/<3 条可判真假的理由"})
+        gaps.append("拒蒸的理由少于 3 条：说不出为什么不该蒸，就等于没判断")
+
+    marks = MARK_RE.findall(joined)
+    if len(marks) >= REFUSE_MARKS_MIN:
+        checks.append({"name": "refuse-marks", "ok": True, "detail": f"{len(marks)} 处"})
+    else:
+        checks.append({"name": "refuse-marks", "ok": False, "kind": "GAP", "detail": "0 处标记"})
+        gaps.append("拒蒸判断没有任何 [O]/[D]/[I] 标记：凭什么说它不值得蒸，要标出证据层级")
+
+    anchors = sorted(set(ANCHOR_FILE_RE.findall(joined))) + sorted(set(ANCHOR_URL_RE.findall(joined)))
+    dead = [a for a in anchors if not resolve_anchor(target, a)[0]]
+    if dead:
+        checks.append({"name": "refuse-anchors", "ok": False, "kind": "VIOLATION",
+                       "detail": f"{len(dead)}/{len(anchors)} 不可解析"})
+        violations.append("拒蒸锚点不可解析：" + "；".join(dead[:3]))
+    elif len(anchors) >= REFUSE_ANCHORS_MIN:
+        checks.append({"name": "refuse-anchors", "ok": True, "detail": f"{len(anchors)} 个"})
+    else:
+        checks.append({"name": "refuse-anchors", "ok": False, "kind": "GAP",
+                       "detail": f"{len(anchors)}/<2 个锚点"})
+        gaps.append("拒蒸也要给「读到哪一层才判定」的锚点，否则是没读就下结论")
+
+    if "未知台账" in joined:
+        checks.append({"name": "section:未知台账", "ok": True, "detail": "命中"})
+    else:
+        checks.append({"name": "section:未知台账", "ok": False, "detail": "缺失"})
+        gaps.append("缺「未知台账」：要蒸它还需要什么，必须写清")
+
+
 def _check_size(ctx):
     """体积：只做 warn，不参与判定。"""
     checks, violations, gaps = ctx.checks, ctx.violations, ctx.gaps
@@ -789,10 +872,14 @@ def check(target: Path, strict_anchor: bool = False):
         ctx.checks.append({"name": "write-integrity", "ok": None,
                            "detail": "未建立写入基线（distill stamp）"})
 
-    _check_identity(ctx)
-    _check_evidence(ctx)
-    _check_conclusions(ctx)
-    _check_references(ctx)
+    if is_refuse(ctx.fm):
+        # 克制型产物走另一套判据：验「该不该蒸这个判断」，不验产物齐不齐
+        _check_refuse(ctx)
+    else:
+        _check_identity(ctx)
+        _check_evidence(ctx)
+        _check_conclusions(ctx)
+        _check_references(ctx)
     _check_size(ctx)
 
     violations, gaps = ctx.violations, ctx.gaps

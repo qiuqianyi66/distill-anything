@@ -1,7 +1,7 @@
 ---
 name: distill-anything
 description: 蒸馏一切——把任意对象（人、代码仓库、长文档、技能库、事故、对话日志、竞品、方法论流派）压成带证据锚点、未知台账、可证伪判据的可复用产物。Use when 用户说蒸馏X、逆向X、扒一个X、把X做成skill、提炼X的方法论。Don't use for 纯摘要（走 doubao-critical-reading-companion）、人物角色扮演（走 distilly）、代码库架构讲解（走 doubao-coding-analyze-codebase）。
-version: 1.1.21
+version: 1.1.22
 source: 三重验证/去名测试 ← alchaincyf/nuwa-skill v1.1.0；工厂式写入/质检不允许伪造 ← titanwings/distilly；证据三元/未知台账/覆盖≠存在 ← morluto/rea；双模式授权/不确定无等级 ← 蒸馏 cloudflare/security-audit-skill（2026-11-07）；判据回流三分类 ← 蒸馏 docs/plans/skill-callability-r2.md（2026-11-08）；其余标「← 自定」的为本技能自身设计
 updated: 2026-11-09
 ---
@@ -73,6 +73,7 @@ updated: 2026-11-09
 - **思维型** → `perspective`：心智模型 3-7 个、决策启发式、表达 DNA、内在张力、诚实边界。**另加两件强制件**：开头写「擅长 / 不擅长」两栏（诚实边界前置），且必须有一段「回答工作流（Agentic Protocol）」——分类 → 按类型检索 → 作答，检索过程不输出。`← 蒸馏 nuwa-skill examples 2026-11-08`
 - **机制型** → `mechanism`：结构地图、关键决策与其代价、可搬机制、明确不搬的理由、验证方式。
 - **判据型** → `rules`：触发条件 → 禁止行为 → 一线修复 → 兜底。
+- **克制型** → `refuse`：正解是「不蒸」。frontmatter 写 `decision: refuse`，正文只留判断 + ≥3 条能判真假的理由 + ≥1 处标记 + ≥2 个锚点 + 未知台账；写齐模板节反而判红（声明不蒸却产全套）。`← ronce-racine 的 limit 场景 2026-11-10`
 
 ## 2 九步流水线
 
@@ -181,6 +182,7 @@ updated: 2026-11-09
 - 用「可以考虑」「也许」「根据情况」软化关键指令：SkillLens 把这条列为三个质量维度之一（actionable specificity），软化措辞是让技能在真实使用时失效的主要写法。`← arXiv 2605.23899`
 - 清理后不比对分布：删过期映射、删冗余条目后必须比对「变化条数」，不为零就逐条解释，解释不通即回滚。`← skill-callability-r2 F5`
 - 验证命令没跑通就写进产物：写着「可跑这条命令」却没实测，等于伪造可验证性。`← skill-callability-r2 F5`
+- 把「不蒸」当免检：声明 `decision: refuse` 就想跳过一切判据，既不写为什么、也不给读到哪一层。拒蒸也要付理由与锚点，否则是没读就下结论。`← ronce-racine limit 场景 2026-11-10`
 - 只验「判据会响」不验「是谁响的」：断言写成「预期 check 出现在失败列表里」，被别的判据顺带拦下也算通过，是假验收。必须断言被判红的 check 集合与预期**全等**。`← 行为化门禁 2026-11-09`
 - 单人自由打分当生成力证据：D7 只报三轮多数与一致/分歧，不报分差与区间。`← D7 盲化 2026-11-09`
 - 跨形态比总分：拿同一把尺量「证据型产物」和「人格型产物」，分数差测的是形态不是质量。跨形态只允许比生成力（给新问题看能否作答）。`← 三派对照 2026-11-09`
@@ -229,6 +231,7 @@ out/distill-<slug>/
 | `references/templates/mechanism.md` | mechanism 型产物模板 | `init --type mechanism` 后照它填 |
 | `references/templates/perspective.md` | perspective 型产物模板（含反例黑名单、失败模式与 Fallback 树两节） | 同上 |
 | `references/templates/rules.md` | rules 型产物模板（判据表/假阳性/门禁） | 同上 |
+| `references/templates/refuse.md` | refuse 型（不蒸）产物模板 | `init --type refuse` 后照它填 |
 | `scripts/distill.py` | 执行层 CLI，7 个叶子子命令（init/gate/index/evidence add/evidence rebind/scan/stamp） | 主入口，先跑 `--help` |
 | `scripts/gate.py` | 单文件门禁，可脱离 distill.py 独立跑 | `python scripts/gate.py <产物> --json` |
 | `scripts/anchorize.py` | 把正文里带标记行的路径锚点批量换成 E id | `python scripts/anchorize.py <产物目录> --dry-run` |
@@ -237,7 +240,7 @@ out/distill-<slug>/
 | `scripts/d7_blind.py` | D7 盲化：生成遮蔽评分表、汇总三轮多数、揭盲 | 判生成力时用它，别自由打分 |
 | `references/d7-blind-protocol.md` | D7 五条判据、遮蔽规则、结论口径与污染声明 | 评 D7 前必读 |
 | `scripts/migrate_legacy.py` | 把旧产物的路径锚点迁进证据库 | `python scripts/migrate_legacy.py --help` |
-| `tests/run_gate_tests.py` | 门禁回归 38 例（CLI 级三态 + 4 个变异夹具的 fired 集合全等 + 反向验证） | 改任何判据后必须跑 |
+| `tests/run_gate_tests.py` | 门禁回归 41 例（CLI 级三态 + 4 个变异夹具 + 3 个克制型夹具的 fired 集合全等 + 双向反证） | 改任何判据后必须跑 |
 | `tests/test_groups.py` | 5 个 `_check_*` 分组函数的函数级单测 | 改单个分组判据时先跑它，定位比 CLI 级快 |
 
 `scripts/gate.py` 被 `distill.py` import 而单独调用也能用；`migrate_legacy.py` 只在迁移旧产物时用一次，平时不用。
