@@ -594,7 +594,10 @@ def _check_conclusions(ctx):
     eval_bare = [ln for ln in bare if any(w in ln for w in EVAL_WORDS)]
     ratio = (len(bare) / len(concl)) if concl else 0.0
     has_base = len(marks) >= MARK_MIN and anchor_total >= ANCHOR_MIN
-    if len(eval_bare) >= 2:
+    if not concl:
+        # 空集不等于干净：没有结论行时「0 条未标记」只是没东西可查（掏空探针实测踩到）
+        checks.append({"name": "conclusions", "ok": None, "detail": "无结论行，跳过"})
+    elif len(eval_bare) >= 2:
         checks.append({"name": "conclusions", "ok": False,
                        "detail": f"{len(eval_bare)} 条评价型裸结论（共 {len(concl)} 条结论）"})
         violations.append(f"{len(eval_bare)} 条评价型结论无任何标记或锚点")
@@ -633,6 +636,9 @@ def _check_references(ctx):
     if missing_refs:
         checks.append({"name": "refs", "ok": False, "detail": f"缺 {len(missing_refs)} 个"})
         violations.append("引用不存在：" + ", ".join(sorted(missing_refs)[:3]))
+    elif not set(REF_RE.findall(joined)):
+        # 一条引用都没有时「全部可达」是空集真值，不是验过的结论
+        checks.append({"name": "refs", "ok": None, "detail": "无引用，跳过"})
     else:
         checks.append({"name": "refs", "ok": True, "detail": "全部可达"})
     # 7e 相对链接与锚点：链接目标必须存在，`#锚点` 必须在目标文档里有同名标题
@@ -655,6 +661,8 @@ def _check_references(ctx):
             checks.append({"name": "links", "ok": False, "kind": "VIOLATION",
                            "detail": f"{len(bad_links)} 处"})
             violations.append("链接失效：" + "；".join(bad_links[:3]))
+        elif not LINK_RE.findall(prose_txt):
+            checks.append({"name": "links", "ok": None, "detail": "无相对链接，跳过"})
         else:
             checks.append({"name": "links", "ok": True, "detail": "全部可达"})
     # 7b 锚点存活：抽样（≤3 全查，否则 20% 且至少 3），确定性抽样保证回归可复现
@@ -771,6 +779,10 @@ def check(target: Path, strict_anchor: bool = False):
             ctx.checks.append({"name": "write-integrity", "ok": False, "kind": "GAP",
                                "detail": "与 stamp 基线不一致，落盘后被改动"})
             ctx.gaps.append("产物在 stamp 之后被外部程序改写：确认来源后重跑 distill stamp 重建基线，或还原文件")
+        elif not rec:
+            # 容器里有基线，但没有这张产物的记录：不能说「一致」，那是把没验过说成验过
+            ctx.checks.append({"name": "write-integrity", "ok": None,
+                               "detail": "该产物无 stamp 记录（容器有基线，缺本条）"})
         else:
             ctx.checks.append({"name": "write-integrity", "ok": True, "detail": "与基线一致"})
     else:

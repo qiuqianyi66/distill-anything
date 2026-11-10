@@ -355,6 +355,18 @@ def main() -> int:
               f"got={data.get('status')}/{sorted(fired)} 反例={back['status']}")
         failures += 0 if ok else 1
 
+    # 掏空探针（来源：ronce-racine `eval:probe` 的思路）：把 good 产物按结构保留、内容全掏空后
+    # 再过门禁。① 不许 PASS（否则门禁只认排版）；② conclusions/refs/links 这类「没事可查就报 True」
+    # 的检查必须变成 None——空文档不该拿「全部可达」。
+    total += 1
+    gp = __import__("gate_probe")
+    pr = gp.probe_one(root / "fixtures" / "score-good.md")
+    vacuous = {"conclusions", "refs", "links", "write-integrity"}  # 后两者：空集与「无 stamp 记录」都不算验过
+    ok = (pr["probe_status"] != "PASS") and not (vacuous & set(pr["format_gates"]))
+    print(f"{'ok  ' if ok else 'FAIL'} {'hollow-probe':<16} expect=非PASS且空集检查不计入格式门 "
+          f"got={pr['probe_status']}/{sorted(vacuous & set(pr['format_gates']))}")
+    failures += 0 if ok else 1
+
     print(f"\n{total - failures}/{total} 通过")
     return 1 if failures else 0
 
