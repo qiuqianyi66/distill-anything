@@ -38,6 +38,17 @@ def cmd_plan(args):
         for name in arms:
             p = Path(args.answers) / f"{name}.md"
             answers[name] = p.read_text(encoding="utf-8").strip() if p.exists() else ""
+    # 每个问题一套答案（ans/q1/any.md …），避免同一段文本答五个问题
+    if args.answers:
+        root = Path(args.answers)
+        for qi in range(1, len(questions) + 1):
+            qd = root / f"q{qi}"
+            if not qd.is_dir():
+                continue
+            for name in arms:
+                p = qd / f"{name}.md"
+                if p.exists():
+                    answers[(qi, name)] = p.read_text(encoding="utf-8").strip()
     plan = {"seed": args.seed, "rounds": args.rounds, "questions": questions,
             "arms": arms, "sheets": []}
     for r in range(1, args.rounds + 1):
@@ -47,7 +58,8 @@ def cmd_plan(args):
             for idx, code in enumerate(order, 1):
                 # 正文按遮蔽后的顺序内联，评分者只看得到文本，看不到它来自哪个臂
                 plan["sheets"].append({"round": r, "q": qi, "code": code, "pos": idx,
-                                       "text": answers.get(mapping[code], "") if answers else "",
+                                       "text": answers.get((qi, mapping[code]), answers.get(mapping[code], ""))
+                                       if answers else "",
                                        "verdict": None})
     # 遮蔽：映射单独存，--reveal 前不打印
     Path(args.out).write_text(json.dumps(plan, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -112,7 +124,8 @@ def cmd_report(args):
         per_arm.setdefault(arm, []).append(s["verdict"]["hit"])
     for arm, hits in sorted(per_arm.items()):
         major, cnt = majority(hits)
-        print(f"{arm:<10} 各轮={hits} 多数={major}/{cnt} 稳定={'是' if cnt >= 2 else '否'}")
+        stable = "单轮（不判稳定）" if len(hits) < 2 else f"{'是' if cnt >= 2 else '否'}"
+        print(f"{arm:<10} 各轮={hits} 多数={major}/{cnt} 稳定={stable}")
 
     products = {a: h for a, h in per_arm.items() if a != "none"}
     best = {a: majority(h)[0] for a, h in products.items() if h}
