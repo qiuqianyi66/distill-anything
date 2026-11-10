@@ -131,7 +131,9 @@ def t_references(tmp):
 
     ctx = ctx_of(tmp, BASE_FM + "# demo\n没有外部引用\n")
     gate._check_references(ctx)
-    expect("references:无引用即全可达", by_name(ctx, "refs")[0]["ok"] is True)
+    # 语义收紧（2026-11-10 掏空探针）：零引用时「全部可达」是空集真值，不是验过的结论，
+    # 改为 None；这条断言本身从「报 True」翻成「报 None」，就是把旧宽松口径钉死的那颗钉子拔掉。
+    expect("references:无引用时不许报 True（空集不等于验过）", by_name(ctx, "refs")[0]["ok"] is None)
     expect("references:无文件锚点时存活检查豁免", by_name(ctx, "anchor-liveness")[0]["ok"] is None)
 
     thin = (BASE_FM + "# demo\n\n## 7 未知台账\n| 未知 | 为什么解不了 | 需要什么才能解 |\n"
