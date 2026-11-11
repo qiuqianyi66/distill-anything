@@ -354,7 +354,7 @@ def main() -> int:
         failures += report("stamp-mangled", "INCOMPLETE", got, code)
 
     # 分桶布局：产物被搬到 out/<bucket>/distill-* 后，--recursive 仍必须找到它。
-    # 原先只 glob 顶层，DSH 2026-11-09 按域隔离后门禁会静默「0 份通过」，比报错更危险。
+    # 原先只 glob 顶层，2026-11-09 按域隔离后门禁会静默「0 份通过」，比报错更危险。
     total += 1
     with tempfile.TemporaryDirectory() as td:
         bucket = Path(td) / "bucket" / "distill-nested"

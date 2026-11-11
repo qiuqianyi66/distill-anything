@@ -13,7 +13,7 @@ An open-source distillation skill + CLI with a four-state quality gate (PASS / I
 [![Version](https://img.shields.io/badge/skill-v1.1.29-blue)](SKILL.md)
 [![License](https://img.shields.io/github/license/qiuqianyi66/distill-anything)](#)
 
-**[它是什么](#它是什么) · [三层结构](#三层结构) · [快速开始](#快速开始) · [门禁四态](#门禁四态) · [运行安全](#运行安全) · [判据](#判据什么叫蒸出来了) · [验收](#验收) · [边界](#诚实边界)**
+**[示例作品](examples/README.md) · [它是什么](#它是什么) · [三层结构](#三层结构) · [快速开始](#快速开始) · [门禁四态](#门禁四态) · [运行安全](#运行安全) · [判据](#判据什么叫蒸出来了) · [验收](#验收) · [边界](#诚实边界)**
 
 </div>
 
@@ -32,6 +32,8 @@ An open-source distillation skill + CLI with a four-state quality gate (PASS / I
 3. **状态层**（`evidence.jsonl` + `notes/`）：每条证据带原文指纹与行号，正文只引 id，文件一改门禁就知道。
 
 核心判断标准：**删掉对象的名字，产物还得立得住。** 关键词：knowledge distillation、evidence protocol、falsifiable claims、AI agent skill、LLM reliability。
+
+> 想看真实成品：[`examples/`](examples/README.md) 含两份脱敏后的蒸馏作品（rules + mechanism），每条结论都挂着可核验的证据 id。
 
 ## 三层结构
 

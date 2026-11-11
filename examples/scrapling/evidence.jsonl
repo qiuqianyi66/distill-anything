@@ -1,0 +1,5 @@
+{"id": "E-9207dc44", "path": "raw/readme.md", "lines": "65", "level": "O", "statement": "除快速 HTTP 外还提供隐身浏览器与 JS 渲染", "quote_sha1": "3b5797512128", "observed_at": "2026-11-10", "source_ref": "github.com", "supports": []}
+{"id": "E-b006b5ed", "path": "raw/readme.md", "lines": "74", "level": "O", "statement": "页面结构变了靠自适应元素跟踪与相似元素匹配找回目标", "quote_sha1": "213c047da157", "observed_at": "2026-11-10", "source_ref": "github.com", "supports": []}
+{"id": "E-93eee29a", "path": "raw/readme.md", "lines": "73", "level": "O", "statement": "文档宣称可处理 Turnstile/Interstitial 这类反爬交互", "quote_sha1": "49797d372279", "observed_at": "2026-11-10", "source_ref": "github.com", "supports": []}
+{"id": "E-c3f3bac7", "path": "raw/readme.md", "lines": "69", "level": "O", "statement": "同时以 MCP 服务与 Agent Skill 两种方式给 agent 用", "quote_sha1": "c822973a3e00", "observed_at": "2026-11-10", "source_ref": "github.com", "supports": []}
+{"id": "E-ffa45b5e", "path": "raw/readme.md", "lines": "67", "level": "O", "statement": "爬虫支持暂停续跑、代理轮换、重试与导出", "quote_sha1": "c14c9dfa928d", "observed_at": "2026-11-10", "source_ref": "github.com", "supports": []}

@@ -272,7 +272,7 @@ def cmd_init(args):
 def iter_containers(root):
     """找出 root 下所有 distill-* 容器，容忍按域分桶的嵌套布局。
 
-    原先假设 `out/distill-*` 是平铺的，2026-11-09 DSH 目录按域隔离后产物变成
+    原先假设 `out/distill-*` 是平铺的，2026-11-09 宿主项目按域隔离后产物变成
     `runtime/out/<bucket>/distill-*`，平铺 glob 会一份都找不到——门禁于是静默通过。
     限制相对深度 ≤3 且跳过 raw/notes 下的快照副本，避免把素材里的仓库副本当容器。
     """
