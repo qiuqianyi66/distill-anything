@@ -1,7 +1,7 @@
 ---
 name: distill-anything
 description: 蒸馏一切——把任意对象（人、代码仓库、长文档、技能库、事故、对话日志、竞品、方法论流派）压成带证据锚点、未知台账、可证伪判据的可复用产物。Use when 用户说蒸馏X、逆向X、扒一个X、把X做成skill、提炼X的方法论。Don't use for 纯摘要（走 doubao-critical-reading-companion）、人物角色扮演（走 distilly）、代码库架构讲解（走 doubao-coding-analyze-codebase）。
-version: 1.1.30
+version: 1.1.31
 source: 三重验证/去名测试 ← alchaincyf/nuwa-skill v1.1.0；工厂式写入/质检不允许伪造 ← titanwings/distilly；证据三元/未知台账/覆盖≠存在 ← morluto/rea；双模式授权/不确定无等级 ← 蒸馏 cloudflare/security-audit-skill（2026-11-07）；判据回流三分类 ← 蒸馏 docs/plans/skill-callability-r2.md（2026-11-08）；其余标「← 自定」的为本技能自身设计
 updated: 2026-11-11
 ---
@@ -132,6 +132,16 @@ updated: 2026-11-11
 | FAIL | 有结论无锚点、证据指向不存在或已变、引用死链 | 改产物，不许改阈值 |
 | SKIP | 外来文件（第三方技能/原始现场）或中间件，判据不适用 | 不进汇总，不是失败 |
 
+**S8.5 交付前体检（只报观察，不下判定）。** `python "{skill_root}/scripts/audit_evidence.py" <产物目录> [--remote]` 出三张观察表：
+
+| 表 | 看什么 | 什么样的数要警惕 |
+|---|---|---|
+| 具体性密度 | 结论行里带数字/原话/E id/路径行/日期的比例 | <50% 且结论 ≥10 条 → 通篇判断没有事实 |
+| raw 进证据率 | `raw/` 里的实质材料有多少进了 `evidence.jsonl` | 两份材料只进一份 → 多半是读了纪律文档却没写（`← 踩坑 11-11：AGENTS.md 整节未进证据`） |
+| 上游漂移 | raw 原文与上游归一化后是否一致（`--remote`，需 gh） | 有变动只说明原文变了，**不等于断言已错**，要逐条核对断言 |
+
+表只给数，成不达标仍由 gate 判；`--remote` 只比内容，不替人判断哪条结论受影响。
+
 `notes/` 与 `raw/` 是中间件，不声称结论：传进去会打印 `[SKIP]` 并跳过判定。对中间件报 INCOMPLETE 属判据过度，不要为它补 frontmatter。`← 踩坑 11-08`
 
 **外来文件两条识别路径（gate 自动判，不靠人工挪文件）**：① frontmatter 带第三方技能键（`argument-hint`/`allowed-tools`/`user-invocable`）且**缺 `source`**（我方产物必备键，单靠外来键会误伤带 source 的产物）；② 目录链上有 `.foreign` 标记——没有 frontmatter 的现场文件没有可识别字形，只能显式标记。`← 2026-11-09 F1`
@@ -254,6 +264,7 @@ out/distill-<slug>/
 | `scripts/d7_blind.py` | D7 盲化：生成遮蔽评分表、汇总三轮多数、揭盲 | 判生成力时用它，别自由打分 |
 | `references/d7-blind-protocol.md` | D7 五条判据、遮蔽规则、结论口径与污染声明 | 评 D7 前必读 |
 | `scripts/migrate_legacy.py` | 把旧产物的路径锚点迁进证据库 | `python scripts/migrate_legacy.py --help` |
+| `scripts/audit_evidence.py` | 交付前体检：密度 / raw 进证据率 / 上游漂移三张观察表 | 交付前跑，`--remote` 才查漂移 |
 | `tests/run_gate_tests.py` | 门禁回归 44 例（CLI 级三态 + 4 个变异夹具 + 3 个克制型夹具 + 降级路径/运行安全守卫的 fired 集合全等 + 双向反证） | 改任何判据后必须跑 |
 | `tests/test_groups.py` | 5 个 `_check_*` 分组函数的函数级单测 | 改单个分组判据时先跑它，定位比 CLI 级快 |
 
