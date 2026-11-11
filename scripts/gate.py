@@ -33,6 +33,13 @@ REQUIRED_GROUPS = {
 }
 # 降级路径（观察期，只记不判）：只看字形，不要求特定标题。
 FALLBACK_KEYS = ("兜底", "fallback", "降级", "失败模式")
+# 运行安全（2026-11-10 升为必需段，GAP）：非 refuse 产物必须同时覆盖三类语义，
+# 缺任一类 → INCOMPLETE。依据：第二轮 issue 层 8 个对象 6 个栽在「静默报成功/危险操作无确认/
+# 资源不释放」。关键词刻意收窄，去掉「报错/失败/删除/授权/退出」等过宽词，防假命中让判据失齿。
+RUNSAFE_FAIL_KEYS = ("失败显式", "显式报错", "显式失败", "错误码", "静默", "不报成功",
+                     "可重试", "永久失败", "stale", "三态")
+RUNSAFE_DANGER_KEYS = ("确认", "confirm", "二次确认", "危险", "opt-in", "选择加入", "显式选择")
+RUNSAFE_RELEASE_KEYS = ("释放", "teardown", "dispose", "清理", "子进程", "泄漏", "资源")
 CONCLUSION_MIN_LEN = 15
 UNMARKED_RATIO_FAIL = 0.4
 MARK_MIN = 8
@@ -475,6 +482,21 @@ def _check_identity(ctx):
     })
     if not fb_hit:
         gaps.append("缺「降级路径」段（触发→一线修复→仍失败兜底）")
+    # 2c 运行安全：三类语义必须同时覆盖，缺任一类 → GAP（INCOMPLETE，可补，不判 FAIL）。
+    low = joined.lower()
+    rs = {
+        "失败显式": any(k.lower() in low for k in RUNSAFE_FAIL_KEYS),
+        "危险确认": any(k.lower() in low for k in RUNSAFE_DANGER_KEYS),
+        "资源释放": any(k.lower() in low for k in RUNSAFE_RELEASE_KEYS),
+    }
+    rs_miss = [g for g, ok in rs.items() if not ok]
+    checks.append({
+        "name": "section:运行安全",
+        "ok": not rs_miss,
+        "detail": "三类齐全" if not rs_miss else "缺：" + "、".join(rs_miss),
+    })
+    if rs_miss:
+        gaps.append("缺「运行安全」语义（" + "、".join(rs_miss) + "）：失败显式/危险操作确认/资源释放三者必填")
     # 2b perspective 结构（条件触发，机制型/判据型不参与）
     ms, me = section_bounds(body, "心智模型")
     is_persp = (fm.get("name") or "").rstrip().endswith("-perspective") or ms is not None

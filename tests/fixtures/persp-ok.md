@@ -69,6 +69,12 @@ source: out/distill-sample/fixtures/good.md
 ## 回答工作流（Agentic Protocol）
 - 先分类问题，再按对象检索，最后作答；检索过程不输出 [O] src/config.ts:5
 
+## 运行安全
+
+- 失败显式：上游错误分可重试/永久失败，禁止静默报成功，错误码显式返回 [O] src/core.ts:3
+- 危险操作确认：删除等危险动作二次确认，写操作显式选择加入（opt-in）[O] src/config.ts:5
+- 资源释放：子进程用完即释放，teardown 统一清理，防资源泄漏 [D] src/app.ts:4 + src/mw/ratelimit.ts:4
+
 ## 失败兜底
 
 - 兜底：降级为观察期

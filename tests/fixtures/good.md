@@ -45,6 +45,12 @@ source: out/distill-sample/fixtures/good.md
 | 限流阈值如何标定 | 无压测记录 | 需要压测数据 |
 | 启动顺序是否幂等 | 未跑重复启动 | 需要可重复启动的沙箱 |
 
+## 运行安全
+
+- 失败显式：上游错误分可重试/永久失败，禁止静默报成功，错误码显式返回 [O] src/core.ts:3
+- 危险操作确认：删除等危险动作二次确认，写操作显式选择加入（opt-in）[O] src/config.ts:5
+- 资源释放：子进程用完即释放，teardown 统一清理，防资源泄漏 [D] src/app.ts:4 + src/mw/ratelimit.ts:4
+
 ## 失败兜底
 
 - 兜底：降级为观察期

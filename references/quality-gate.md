@@ -179,6 +179,15 @@ perspective 三项的反例注入：把 `MAX_MODELS` 由 7 改成 20，`persp-mo
 - 升级条件：等剩下的口径也定下来（子报告各自补 or 明确由 REPORT 统一承载）后，再考虑升为必需段；升级时必须先让回归变红（`fallback-soft` 这例就是防止有人偷偷把它改成硬判的守卫）。
 - 回归：`tests/run_gate_tests.py` 的 `fallback-soft` 断言「无兜底词的 good.md 仍 PASS，且该 check 的 ok 为 False、warn 为 True」。
 
+## 运行安全必填节（2026-11-10 升级，GAP）
+
+`section:运行安全` 要求非 refuse 产物同时覆盖三类语义：**失败显式 / 危险操作确认 / 资源释放**，缺任一类 → INCOMPLETE（GAP，可补，不判 FAIL）。refuse 走 `_check_refuse` 独立分支，不参与。
+
+- 来源：第二轮 issue 层对照 8 个对象里 6 个栽在「文档/状态与真实实现脱节」，收敛为静默报成功、危险操作无确认、资源不释放三类。
+- 关键词刻意收窄（见 gate.py 的 RUNSAFE_*_KEYS），剔除「报错/失败/删除/授权/退出」等过宽词，防假命中让判据失齿。
+- 先红后绿：先加判据让 good/persp-ok/evidence-ok 等 PASS 用例变红，再补节变绿；同提交含 runsafe-hard（三类齐全 ok=True）与 runsafe-teeth（抹成不带关键词等价节，fired 集合全等 `{section:运行安全}`）两守卫。
+- 存量：32 份产物（含 2 个 shallow 子文件）已基于真实证据、挂本容器 E id 补写并重新 stamp，gate 32/32 PASS。
+
 ## 判据牙齿审计（2026-11-09）
 
 来源：ponytail 的做法是「每条判据自带 good/bad 两份实现，selftest 断言打分器分别给 1 和 0」。搬过来的最小版本是**扫出「从未被判红过」的判据**，再逐条补反例。

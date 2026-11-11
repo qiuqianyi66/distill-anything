@@ -117,6 +117,35 @@ def main() -> int:
               f"got={got_full.get('status')}/{sorted(fired)}")
         failures += 0 if ok else 1
 
+    # 运行安全（2026-11-10 升必需段）守卫，同样正反两面：
+    # ① good.md 三类齐全 → check 为 True；② 抹成不带关键词的等价节（保持行数）→
+    # fired 集合全等 {section:运行安全}，防止判据被偷偷改回 warn。
+    total += 2
+    rs = next((c for c in detail.get("checks", []) if c.get("name") == "section:运行安全"), {})
+    ok = detail.get("status") == "PASS" and rs.get("ok") is True
+    print(f"{'ok  ' if ok else 'FAIL'} {'runsafe-hard':<16} expect=PASS+ok:True got={detail.get('status')}/{rs.get('ok')}")
+    failures += 0 if ok else 1
+    with tempfile.TemporaryDirectory() as td:
+        src = (root / "fixtures" / "good.md").read_text(encoding="utf-8")
+        old = ("\n## 运行安全\n\n"
+               "- 失败显式：上游错误分可重试/永久失败，禁止静默报成功，错误码显式返回 [O] src/core.ts:3\n"
+               "- 危险操作确认：删除等危险动作二次确认，写操作显式选择加入（opt-in）[O] src/config.ts:5\n"
+               "- 资源释放：子进程用完即释放，teardown 统一清理，防资源泄漏 [D] src/app.ts:4 + src/mw/ratelimit.ts:4\n")
+        new = "\n## 附注二\n\n- 无\n- 无\n- 无\n"
+        assert old in src, "good.md 运行安全节原文不匹配，守卫探针无法构造"
+        src = src.replace(old, new)
+        probe = root / "fixtures" / "_runsafe.probe.md"
+        probe.write_text(src, encoding="utf-8")
+        try:
+            got_full = run_gate_full(gate, probe)
+        finally:
+            probe.unlink(missing_ok=True)
+        fired = {c["name"] for c in got_full.get("checks", []) if c.get("ok") is False}
+        ok = got_full.get("status") == "INCOMPLETE" and fired == {"section:运行安全"}
+        print(f"{'ok  ' if ok else 'FAIL'} {'runsafe-teeth':<16} expect=INCOMPLETE/[section:运行安全] "
+              f"got={got_full.get('status')}/{sorted(fired)}")
+        failures += 0 if ok else 1
+
     # 证据已变：复制 evidence-ok 后篡改被引用的行段，必须从 PASS 降到 INCOMPLETE
     total += 1
     with tempfile.TemporaryDirectory() as td:
@@ -255,7 +284,10 @@ def main() -> int:
             "- 补充结论一，指向同一处证据 [O] raw/ok.md:1\n"
             "- 补充结论二，指向同一处证据 [O] raw/ok.md:1\n"
             "- 补充结论三，指向同一处证据 [O] raw/ok.md:1\n\n"
-            "## 4 降级路径\n- 链接检查失败时降级为人工核对\n"
+            "## 4 降级路径\n- 链接检查失败时降级为人工核对\n\n"
+            "## 5 运行安全\n- 失败显式：错误分可重试/永久失败，不静默报成功，错误码显式 [O] raw/ok.md:1\n"
+            "- 危险操作确认：危险删除二次确认，写操作显式选择加入（opt-in）[O] raw/ok.md:1\n"
+            "- 资源释放：子进程用完释放，teardown 清理防资源泄漏 [O] raw/ok.md:1\n"
         )
         md = dst / "report.md"
         md.write_text(base + "- 见 [第一节](raw/ok.md#第一节)\n", encoding="utf-8")
