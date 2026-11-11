@@ -10,7 +10,7 @@ An open-source distillation skill + CLI with a four-state quality gate (PASS / I
 [![Stars](https://img.shields.io/github/stars/qiuqianyi66/distill-anything?logo=github&label=Stars)](https://github.com/qiuqianyi66/distill-anything/stargazers)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=fff)](#)
 [![Tests](https://img.shields.io/badge/tests-44%20%2B%205%20groups-brightgreen)](#验收)
-[![Version](https://img.shields.io/badge/skill-v1.1.29-blue)](SKILL.md)
+[![Version](https://img.shields.io/badge/skill-v1.1.30-blue)](SKILL.md)
 [![License](https://img.shields.io/github/license/qiuqianyi66/distill-anything)](#)
 
 **[示例作品](examples/README.md) · [它是什么](#它是什么) · [三层结构](#三层结构) · [快速开始](#快速开始) · [门禁四态](#门禁四态) · [运行安全](#运行安全) · [判据](#判据什么叫蒸出来了) · [验收](#验收) · [边界](#诚实边界)**
