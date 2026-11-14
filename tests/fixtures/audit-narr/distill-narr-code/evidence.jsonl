@@ -1,0 +1,6 @@
+{"id": "E-11110001", "path": "raw/README.md", "lines": "3-5", "level": "O", "statement": "用无障碍树给元素 ref，agent 对 ref 发指令", "quote_sha1": "0000000000a1", "observed_at": "2026-11-11", "source_ref": "fixture", "supports": ["report.md"]}
+{"id": "E-11110002", "path": "raw/README.md", "lines": "7-8", "level": "O", "statement": "不抢前台，不移动指针与焦点", "quote_sha1": "0000000000a2", "observed_at": "2026-11-11", "source_ref": "fixture", "supports": ["report.md"]}
+{"id": "E-11110003", "path": "raw/README.md", "lines": "10-10", "level": "O", "statement": "动作只接受完整形态的 ref", "quote_sha1": "0000000000a3", "observed_at": "2026-11-11", "source_ref": "fixture", "supports": ["report.md"]}
+{"id": "E-11110004", "path": "raw/README.md", "lines": "12-13", "level": "O", "statement": "密集界面两段式：先骨架再下钻", "quote_sha1": "0000000000a4", "observed_at": "2026-11-11", "source_ref": "fixture", "supports": ["report.md"]}
+{"id": "E-11110005", "path": "raw/README.md", "lines": "15-16", "level": "O", "statement": "工具里没有模型，循环留在调用方", "quote_sha1": "0000000000a5", "observed_at": "2026-11-11", "source_ref": "fixture", "supports": ["report.md"]}
+{"id": "E-11110006", "path": "raw/README.md", "lines": "18-19", "level": "O", "statement": "快照带超时，超时返回失败", "quote_sha1": "0000000000a6", "observed_at": "2026-11-11", "source_ref": "fixture", "supports": ["report.md"]}

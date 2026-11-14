@@ -1,9 +1,9 @@
 ---
 name: distill-anything
-description: 蒸馏一切——把任意对象（人、代码仓库、长文档、技能库、事故、对话日志、竞品、方法论流派）压成带证据锚点、未知台账、可证伪判据的可复用产物。Use when 用户说蒸馏X、逆向X、扒一个X、把X做成skill、提炼X的方法论。Don't use for 纯摘要（走 doubao-critical-reading-companion）、人物角色扮演（走 distilly）、代码库架构讲解（走 doubao-coding-analyze-codebase）。
-version: 1.1.31
+description: 蒸馏一切——把对象压成带证据锚点、未知台账、可证伪判据的产物。Use when 蒸馏X、逆向X、把X做成skill、提炼方法论。不用于纯摘要（走 doubao-critical-reading-companion）、代码库架构（走 doubao-coding-analyze-codebase）。
+version: 1.1.37
 source: 三重验证/去名测试 ← alchaincyf/nuwa-skill v1.1.0；工厂式写入/质检不允许伪造 ← titanwings/distilly；证据三元/未知台账/覆盖≠存在 ← morluto/rea；双模式授权/不确定无等级 ← 蒸馏 cloudflare/security-audit-skill（2026-11-07）；判据回流三分类 ← 蒸馏 docs/plans/skill-callability-r2.md（2026-11-08）；其余标「← 自定」的为本技能自身设计
-updated: 2026-11-11
+updated: 2026-11-14
 ---
 
 # 蒸馏一切
@@ -46,11 +46,21 @@ updated: 2026-11-11
 1. **重复不凑数。** 同一处锚点写多少遍都只算一处，`gate` 按去重计数（`← 踩坑 11-08：某产物报 8 处锚点，实际只有 4 处不同`）。
 2. **路径必须配 `source_ref`。** 正文出现 `路径:行` 时，落款或证据台账要写 commit、`file:sha256:<前8位>` 或抓取日期，否则换一个 commit 就失效（`← 踩坑 11-07：agent-browser ref 只有快照时刻有效`）。
 3. **交付前开严格模式。** `python "{skill_root}/scripts/distill.py" gate <产物> --strict-anchor` 要求 E id 占锚点总数 ≥50%。该检查只对「有 `evidence.jsonl` 且 ≥5 条」的产物生效，老产物豁免，避免集体假红（`← 踩坑 11-08：新产物正文 24 处路径锚点、0 处 id，读者根本查不到条目`）。
-4. **锚点不许越界。** 不许 `../`、不许绝对路径；解析出的文件必须在产物目录内。门禁不替你去读产物外的系统文件（`← 踩坑 11-08：\`../../../Windows/win.ini:1\` 一度被判成立`）。
+4. **锚点不许越界。** 不许 `../`、不许绝对路径；解析出的文件必须在产物目录内。门禁不替你去读产物外的系统文件（`← 踩坑 11-08：``../../../Windows/win.ini:1`` 一度被判成立`）。
 
 批量收口：`python "{skill_root}/scripts/anchorize.py" --dir out/distill-<slug> --date <今天> [--source <ref>] [--dry-run]`。只处理**带 `[O]/[D]/[I]` 标记的行**，「待补读某文件某行」这类指路不动——把指路当证据收进库里，比漏收更糟。
 
 证据条目由 `distill evidence add` 生成，`distill index` 维护。两种写法在 `index` 里等价计数：`路径:行` 会按 (path, lines) 反查证据条目，计入该条的 `supports`。
+
+## 0.7 默认倾向（不写就会做错的默认）
+
+- **默认 guidance 模式**：用户只是问「怎么蒸」「能不能蒸」时只给判断，不建 `out/`、不写文件。
+- **默认 E id 锚点**，路径锚点只在 §0.6 列的三种例外里用；两种混写时以 id 为准。
+- **默认产物写当前项目的 `out/distill-<slug>/`**，不写进技能目录——技能目录是只读资产区。
+- **默认未验证项单列不定级**，也不排序；没验证的东西不进结论区。
+- **默认「没找到」写成未知台账条目**，不写成「不存在」。
+- **默认先报调研规模再开跑**：快速（3 维、每维限 5 源，试效果 / 冷门主题）/ 标准（6 维完整，大多数场景）/ 深度（6 维 + 一手素材全量，要发布的质量）。规模报完不等确认，除非产出确实依赖用户选择。`← deep-distill 并入`
+- **默认先做功课再发言**：遇需要事实的问题，先判类型 → 按对应维度查 → 查不到就说查不到。凭训练语料答题是从「顾问」退回「鹦鹉」。`← deep-distill 并入`
 
 ## 1 十秒分诊
 
@@ -132,13 +142,19 @@ updated: 2026-11-11
 | FAIL | 有结论无锚点、证据指向不存在或已变、引用死链 | 改产物，不许改阈值 |
 | SKIP | 外来文件（第三方技能/原始现场）或中间件，判据不适用 | 不进汇总，不是失败 |
 
-**S8.5 交付前体检（只报观察，不下判定）。** `python "{skill_root}/scripts/audit_evidence.py" <产物目录> [--remote]` 出三张观察表：
+**S8.5 交付前体检（只报观察，不下判定）。** `python "{skill_root}/scripts/audit_evidence.py" <产物目录> [--remote] [--json]` 出五张观察表：
 
 | 表 | 看什么 | 什么样的数要警惕 |
 |---|---|---|
 | 具体性密度 | 结论行里带数字/原话/E id/路径行/日期的比例 | <50% 且结论 ≥10 条 → 通篇判断没有事实 |
 | raw 进证据率 | `raw/` 里的实质材料有多少进了 `evidence.jsonl` | 两份材料只进一份 → 多半是读了纪律文档却没写（`← 踩坑 11-11：AGENTS.md 整节未进证据`） |
 | 上游漂移 | raw 原文与上游归一化后是否一致（`--remote`，需 gh） | 有变动只说明原文变了，**不等于断言已错**，要逐条核对断言 |
+| 叙述型单源率 | 挂了 E id 的结论里，所有锚点都落在对象自述文档（README/SKILL/AGENTS/CLAUDE）的比例 | 含非文档材料却 ≥40% 且挂 id 结论 ≥5 → 读了代码/实测却全用自述下结论 |
+| 实现层事实实心率 | 机制型且 raw 含代码的对象，「实现层事实」节里每条断言是否至少含一个能在 raw 命中的具体符号 | 缺本节，或实心率 <40% 且该节标记行 ≥3 → 只写了设计原则，少了一层（`← 第三轮封存测试 rea 1/5`） |
+
+叙述型单源率就是判据 10「证实类压一句」里**能机判的那一半**：只用对象自己的说法下结论，读者读 README 就能拿到，增量为零。另外两件事它做不到，别当成已解决：① `raw/` 本来只有文档时 100% 是结构性的，要查的是采集层（有没有去读代码与实测），不是结论层；② 「相对于先验无新意」测不了，还得靠 `notes/prior.md` 对照。口径细节、阈值来源与实测分布见 `references/quality-gate.md`「叙述型单源率」一节。
+
+实现层事实实心率补的是另一头：**产物是不是少了一整层**。它只对「机制型 + raw 含代码/配置」的对象出数（技能库、方法论流派对象 raw 里也常带脚本，但它们的产物讲做法与纪律，没有状态机可写）。口径是「本节每条断言至少一个具体符号能在 raw 原文里命中」——只写「有很多状态，分别对应不同情况」会被判空写，写了 `needs_configuration`、`HOPPER_LAUNCHER_PATH` 这类可 grep 的符号才算。已知边界：正则片段（如 `^[a-f0-9]{64}$`）不算符号，产物应写常量名（`SHA256_PATTERN`）；名单是线索不是判决。口径细节与实测分布见 `references/quality-gate.md`「实现层事实实心率」一节。
 
 表只给数，成不达标仍由 gate 判；`--remote` 只比内容，不替人判断哪条结论受影响。
 
@@ -185,9 +201,9 @@ updated: 2026-11-11
 
 8. **负迁移测试**：加任何一条新判据/新章节前，先问「最坏情况下它会不会让产物变差」。SkillLens 实测 75% 正收益、**25% 加了反而更差**，且强模型不等于好提取器——所以默认假设新增有风险，而不是默认新增有益。`← SkillLens arXiv 2605.23899`
 9. **降级测试**：产物必须写明「失败时退到哪」。思维型用失败模式与 Fallback 树（触发→一线修复→仍失败兜底），判据型用「仍失败兜底」列。只写正确路径、不写降级路径的产物，遇到检索失败或用户不认就没有出口。`← darwin / ponytail 实测`
-10. **增量测试**：篇幅必须花在相对先验的增量上（推翻/加深/新增），证实类只一两句带过；删掉全部增量条后，剩下的应是模型不看产物也说得出的话。这条靠 S2.5 先验快照对照，gate 只判结构、判不了增量，属流程纪律而非机检项。`← nuwa 2026-11-11`
+10. **增量测试**：篇幅必须花在相对先验的增量上（推翻/加深/新增），证实类只一两句带过；删掉全部增量条后，剩下的应是模型不看产物也说得出的话。这条靠 S2.5 先验快照对照，gate 只判结构、判不了增量，属流程纪律而非机检项。其中「只用对象自述下结论」这一半已由 S8.5 的叙述型单源率机判（`← 2026-11-11 两臂测试后补`），「相对先验无新意」仍靠人工对照。`← nuwa 2026-11-11`
 
-## 4 反模式
+## 4 反模式（踩坑实录）
 
 - 通篇形容词没有判据（「他很厉害」「这个项目很优秀」）。`← 自定`
 - 把摘要当蒸馏：分段复述原文，没有一层自己的筛选。`← distilly`
@@ -250,9 +266,12 @@ out/distill-<slug>/
 | 资产 | 用途 | 怎么用 |
 |---|---|---|
 | `references/target-matrix.md` | 八类对象的探针与已知坑 | 按需读 |
+| `references/six-dimensions.md` | 六维调研框架（人物/技术/领域的完整探针展开） | 人、技术、领域类对象先读 |
+| `references/fidelity-scorecard.md` | 保真度评分卡（FIDELITY 打分口径） | 要发布质量的产物，交付前打分 |
 | `references/evidence-protocol.md` | 三层标记、锚点格式、纠正流程 | 按需读 |
 | `references/quality-gate.md` | 门禁阈值、判据修正记录、改红/改绿 | 按需读 |
-| `references/templates/mechanism.md` | mechanism 型产物模板 | `init --type mechanism` 后照它填 |
+| `references/scorecard-crossschool.md` | 跨派对照评分表（D1–D4 机器可判、D6 派生视图、D7 需人工，改红/改绿夹具） | 打分与对照评审前读 |
+| `references/templates/mechanism.md` | mechanism 型产物模板（v1.1.33 起含条件节「实现层事实」：状态机/阻断条件/阈值与例外，含代码材料时必写） | `init --type mechanism` 后照它填 |
 | `references/templates/perspective.md` | perspective 型产物模板（含反例黑名单、失败模式与 Fallback 树两节） | 同上 |
 | `references/templates/rules.md` | rules 型产物模板（判据表/假阳性/门禁） | 同上 |
 | `references/templates/refuse.md` | refuse 型（不蒸）产物模板 | `init --type refuse` 后照它填 |
@@ -263,9 +282,11 @@ out/distill-<slug>/
 | `scripts/gate_probe.py` | 掏空探针：判断门在验工作还是验排版（格式门占比） | 加判据后跑一遍，格式门要能解释 |
 | `scripts/d7_blind.py` | D7 盲化：生成遮蔽评分表、汇总三轮多数、揭盲 | 判生成力时用它，别自由打分 |
 | `references/d7-blind-protocol.md` | D7 五条判据、遮蔽规则、结论口径与污染声明 | 评 D7 前必读 |
+| `scripts/score_product.py` | 跨派对照评分器：D1–D5 机器可判五维，总分 = 五维之和（上限 50）；D6 派生视图、D7 人工分均不并入总分 | 打分 `--batch`，改算法后跑 `--selftest` |
 | `scripts/migrate_legacy.py` | 把旧产物的路径锚点迁进证据库 | `python scripts/migrate_legacy.py --help` |
-| `scripts/audit_evidence.py` | 交付前体检：密度 / raw 进证据率 / 上游漂移三张观察表 | 交付前跑，`--remote` 才查漂移 |
+| `scripts/audit_evidence.py` | 交付前体检：密度 / raw 进证据率 / 上游漂移 / 叙述型单源率 / 实现层实心率五张观察表 | 交付前跑，`--remote` 才查漂移，`--json` 给回归用 |
 | `tests/run_gate_tests.py` | 门禁回归 44 例（CLI 级三态 + 4 个变异夹具 + 3 个克制型夹具 + 降级路径/运行安全守卫的 fired 集合全等 + 双向反证） | 改任何判据后必须跑 |
+| `tests/run_audit_tests.py` | 观察表回归 39 项（叙述型 18：4 夹具；实现层 21：实心/空写/缺节/仅文档/仅 .mjs 5 夹具） | 改 `audit_evidence.py` 后必须跑 |
 | `tests/test_groups.py` | 5 个 `_check_*` 分组函数的函数级单测 | 改单个分组判据时先跑它，定位比 CLI 级快 |
 
 `scripts/gate.py` 被 `distill.py` import 而单独调用也能用；`migrate_legacy.py` 只在迁移旧产物时用一次，平时不用。

@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""跨派对照评分器：只算机器可判的五维 + 合成维，生成力抽检留占位。
+"""跨派对照评分器：算机器可判的五维 D1–D5，总分即这五维之和（上限 50）。
+
+D6（三元件）是 D3/D5 的派生视图，只报不并入总分；D7（生成力）是人工 0–2 分、另一个 judge，
+也不并入——机器小计与人判分分栏呈现，不做加权合成。
 
 用法：
     python scripts/score_product.py <产物.md> [--json]
@@ -20,6 +23,9 @@ SOFT_WORDS = ("可以考虑", "也许", "根据情况", "视情况", "大概", "
 FORBID_WORDS = ("禁止", "不要", "绝不", "不许", "不能用")
 FALLBACK_KEYS = ("兜底", "fallback", "降级", "失败模式")
 EID_RE = re.compile(r"E-[0-9a-f]{8}")
+
+# 总分只并这五维（2026-11-12）。D6 由 D3/D5 派生、D7 是人工分，都不并入总分。
+COMPOSED = ("D1 结构", "D2 证据", "D3 兜底", "D4 未知", "D5 具体性")
 
 # 类型必备段（按标题关键词命中）
 SEC_MECH = ("结构地图", "关键决策", "可搬", "不搬", "证据台账", "诚实边界", "未知台账")
@@ -101,11 +107,39 @@ def section_rows(body, keys):
     return rows
 
 
+def fallback_column_rows(body):
+    """兜底写成表格的一列时也算：判据表的「仍失败兜底」列和独立兜底节是同一件事的两种排版。
+
+    2026-11-14 加：只认节名会把 5 份已有兜底列的产物读成 D3=0，
+    读数于是变成「催人去补一节空话」。
+    """
+    total, col = 0, None
+    for ln in body:
+        s = ln.strip()
+        if not s.startswith("|"):
+            col = None
+            continue
+        cells = [c.strip() for c in s.strip("|").split("|")]
+        if set("".join(cells)) <= set("-: "):
+            continue
+        if col is None:
+            for i, c in enumerate(cells):
+                if any(k in c.lower() for k in FALLBACK_KEYS):
+                    col = i
+                    break
+            continue                      # 这一行是表头，不计
+        if col < len(cells) and cells[col] and not cells[col].startswith("（待填"):
+            total += 1
+    return total
+
+
 def d3_fallback(body):
     rows = section_rows(body, FALLBACK_KEYS)
-    if not rows:
+    alt = fallback_column_rows(body)
+    best = max(len(rows), alt)
+    if not best:
         return 0.0, "无兜底节"
-    return round(10 * min(len(rows) / 5, 1), 1), f"兜底表 {len(rows)} 行"
+    return round(10 * min(best / 5, 1), 1), f"兜底节 {len(rows)} 行 / 兜底列 {alt} 行"
 
 
 def d4_unknown(body):
@@ -141,12 +175,18 @@ def score(path):
     d4, n4 = d4_unknown(body)
     d5, n5 = d5_specific(body)
     d6 = round((d3 + d5) / 2, 1)
-    total = round(d1 + d2 + d3 + d4 + d5 + d6, 1)
+    # 总分 = D1..D5 之和，上限 50。旧版把 D6 也加进去，等于 D3、D5 各算 1.5 次（上限 60）；
+    # D6 是给 SkillLens 三元件对齐用的派生视图，只报不并。D7 是人工 0-2 分、另一个 judge，
+    # 加进机器总分只会造伪精度，所以 total 明确是「机器小计 /50」，与人判分并列呈现。
+    total = round(d1 + d2 + d3 + d4 + d5, 1)
     return {
         "target": str(path),
         "dims": {"D1 结构": d1, "D2 证据": d2, "D3 兜底": d3, "D4 未知": d4,
                  "D5 具体性": d5, "D6 三元件": d6, "D7 生成力": None},
         "total": total,
+        "total_max": 50.0,
+        "composed": list(COMPOSED),
+        "derived_not_in_total": ["D6 三元件", "D7 生成力"],
         "manual": "pending",
         "notes": {"D1": n1, "D2": n2, "D3": n3, "D4": n4, "D5": n5},
     }
@@ -184,6 +224,31 @@ def selftest():
     print(f"D2 变异（去标记）-> {d2b}  {'ok' if ok else 'FAIL 掉分不足'}")
     tmp.unlink()
 
+    # D3 的第二形态（2026-11-14）：兜底不写在独立节里，而是判据表的「仍失败兜底」列。
+    # 读不到这种形态会把 5 份已有兜底列的产物判成 D3=0，等于催人去补空话。
+    col_fix = here / "tests" / "fixtures" / "score-fallback-column.md"
+    d3c = score(col_fix)["dims"]["D3 兜底"]
+    ok = d3c == 10.0
+    fails += 0 if ok else 1
+    print(f"D3 变异（兜底列而非兜底节）{d3c}  {'ok' if ok else 'FAIL 应为 10'}")
+
+
+    # 组合口径（2026-11-12）：总分只并机器可判五维 D1–D5（上限 50）。
+    # D6 是 D3/D5 的派生视图，并入等于这两维各被算 1.5 次；D7 是另一 judge 的人工分，不并入。
+    for label, p in (("good", good), ("bad", bad)):
+        r = score(p)
+        d = r["dims"]
+        s5 = round(sum(d[k] for k in COMPOSED), 1)
+        checks = [
+            ("总分=D1..D5 之和", r["total"] == s5),
+            ("总分基数 50", r.get("total_max") == 50.0),
+            ("D6/D7 未并入", "D6 三元件" not in r["composed"] and "D7 生成力" not in r["composed"]),
+            ("D7 仍是人工占位", d["D7 生成力"] is None and r["manual"] == "pending"),
+        ]
+        for name, ok in checks:
+            fails += 0 if ok else 1
+            print(f"组合[{label}] {name}: {'ok' if ok else 'FAIL total=' + str(r['total'])}")
+
     print(f"\nselftest: {'全部通过' if not fails else f'{fails} 项失败'}")
     return 1 if fails else 0
 
@@ -214,18 +279,19 @@ def main():
         if as_json:
             print(json.dumps(rows, ensure_ascii=False, indent=2))
             return 0
-        print(f"{'产物':<48} {'总分':>5}  D1  D2  D3  D4  D5  D6")
+        print(f"{'产物':<48} {'总分/50':>7}  D1  D2  D3  D4  D5  D6")
         for r in rows:
             d = r["dims"]
             name = Path(r["target"]).name
             print(f"{name:<48} {r['total']:>5}  " + "  ".join(f"{d[k]:>3}" for k in
                   ("D1 结构", "D2 证据", "D3 兜底", "D4 未知", "D5 具体性", "D6 三元件")))
+        print("注：总分=D1..D5 之和，上限 50；D6 为派生视图、D7 为人工分，均不并入。")
         return 0
     r = score(target)
     if as_json:
         print(json.dumps(r, ensure_ascii=False, indent=2))
     else:
-        print(f"{target.name}: 总分 {r['total']}")
+        print(f"{target.name}: 总分 {r['total']}/50（D1–D5 之和；D6/D7 不并入）")
         for k, v in r["dims"].items():
             print(f"  {k}: {v}")
         for k, v in r["notes"].items():

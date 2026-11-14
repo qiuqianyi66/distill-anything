@@ -1,0 +1,7 @@
+{"id": "E-33330001", "path": "raw/src/app.py", "lines": "8-11", "level": "O", "statement": "裸 ref 抛 INVALID_ARGS，校验在 act 入口", "quote_sha1": "0000000000c1", "observed_at": "2026-11-11", "source_ref": "fixture", "supports": ["report.md"]}
+{"id": "E-33330002", "path": "raw/src/app.py", "lines": "2-4", "level": "O", "statement": "snapshot 只返回 root 与节点数", "quote_sha1": "0000000000c2", "observed_at": "2026-11-11", "source_ref": "fixture", "supports": ["report.md"]}
+{"id": "E-33330003", "path": "raw/src/app.py", "lines": "9-10", "level": "O", "statement": "入口只校验形态，不判权限", "quote_sha1": "0000000000c3", "observed_at": "2026-11-11", "source_ref": "fixture", "supports": ["report.md"]}
+{"id": "E-33330004", "path": "raw/src/app.py", "lines": "12-12", "level": "O", "statement": "返回字符串而非对象", "quote_sha1": "0000000000c4", "observed_at": "2026-11-11", "source_ref": "fixture", "supports": ["report.md"]}
+{"id": "E-33330005", "path": "raw/src/app.py", "lines": "8-8", "level": "O", "statement": "缺参抛 TypeError，无默认值", "quote_sha1": "0000000000c5", "observed_at": "2026-11-11", "source_ref": "fixture", "supports": ["report.md"]}
+{"id": "E-33330006", "path": "raw/src/app.py", "lines": "12-13", "level": "O", "statement": "动作名不校验白名单，任意字符串透传", "quote_sha1": "0000000000c6", "observed_at": "2026-11-11", "source_ref": "fixture", "supports": ["report.md"]}
+{"id": "E-22220009", "path": "raw/README.md", "lines": "3-3", "level": "O", "statement": "自述称支持并行调用", "quote_sha1": "0000000000c7", "observed_at": "2026-11-11", "source_ref": "fixture", "supports": ["report.md"]}

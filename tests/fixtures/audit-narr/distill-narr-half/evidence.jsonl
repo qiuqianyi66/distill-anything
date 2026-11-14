@@ -1,0 +1,2 @@
+{"id": "E-44440001", "path": "raw/README.md", "lines": "3-3", "level": "O", "statement": "动作只接受完整形态的 ref", "quote_sha1": "0000000000d1", "observed_at": "2026-11-11", "source_ref": "fixture", "supports": ["report.md"]}
+{"id": "E-44440002", "path": "raw/src/app.py", "lines": "8-11", "level": "O", "statement": "裸 ref 抛 INVALID_ARGS", "quote_sha1": "0000000000d2", "observed_at": "2026-11-11", "source_ref": "fixture", "supports": ["report.md"]}

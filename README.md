@@ -9,8 +9,8 @@ An open-source distillation skill + CLI with a four-state quality gate (PASS / I
 
 [![Stars](https://img.shields.io/github/stars/qiuqianyi66/distill-anything?logo=github&label=Stars)](https://github.com/qiuqianyi66/distill-anything/stargazers)
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=fff)](#)
-[![Tests](https://img.shields.io/badge/tests-44%20%2B%205%20groups-brightgreen)](#验收)
-[![Version](https://img.shields.io/badge/skill-v1.1.31-blue)](SKILL.md)
+[![Tests](https://img.shields.io/badge/tests-44%20%2B%205%20groups%20%2B%2039%20audit-brightgreen)](#验收)
+[![Version](https://img.shields.io/badge/skill-v1.1.36-blue)](SKILL.md)
 [![License](https://img.shields.io/github/license/qiuqianyi66/distill-anything)](#)
 
 **[示例作品](examples/README.md) · [它是什么](#它是什么) · [三层结构](#三层结构) · [快速开始](#快速开始) · [门禁四态](#门禁四态) · [运行安全](#运行安全) · [判据](#判据什么叫蒸出来了) · [验收](#验收) · [边界](#诚实边界)**
@@ -49,10 +49,12 @@ distill-anything/
 │   ├── distill.py           # 执行层 CLI：init/gate/index/evidence/scan/stamp
 │   ├── gate.py              # 单文件门禁，可独立调用
 │   ├── anchorize.py         # 路径锚点批量换成证据 id
+│   ├── audit_evidence.py    # 交付前体检：密度/覆盖/漂移/叙述型单源率
 │   ├── d7_blind.py          # 盲化评分，防自由打分
 │   └── migrate_legacy.py    # 老产物迁进证据库
 └── tests/
     ├── run_gate_tests.py    # CLI 级回归 44 例
+    ├── run_audit_tests.py   # 观察表回归 39 项（叙述型 + 实现层）
     └── test_groups.py       # 五个分组函数的函数级单测
 ```
 
@@ -116,11 +118,12 @@ python scripts/distill.py stamp out/distill-my-object/report.md
 ## 验收
 
 ```bash
-python tests/run_gate_tests.py   # 44/44
-python tests/test_groups.py      # 5 组 / 全项通过
+python tests/run_gate_tests.py    # 44/44
+python tests/test_groups.py       # 5 组 / 全项通过
+python tests/run_audit_tests.py   # 39/39（叙述型单源率 + 实现层实心率）
 ```
 
-两个测试层互不替代：CLI 级验整份产物的最终状态，函数级直调五个 `_check_*` 分组函数。新增判据时同提交必须给一个能打红的反例——只有正向断言的测试在判据退化时仍然是绿的。
+三个测试层互不替代：CLI 级验整份产物的最终状态，函数级直调五个 `_check_*` 分组函数，审计回归验观察表的读数口径。新增判据时同提交必须给一个能打红的反例——只有正向断言的测试在判据退化时仍然是绿的。
 
 ## 诚实边界
 

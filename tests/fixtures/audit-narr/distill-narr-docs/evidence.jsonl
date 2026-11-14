@@ -1,0 +1,2 @@
+{"id": "E-22220001", "path": "raw/README.md", "lines": "3-4", "level": "O", "statement": "安装路径末段必须是对象名，否则拒绝", "quote_sha1": "0000000000b1", "observed_at": "2026-11-11", "source_ref": "fixture", "supports": ["report.md"]}
+{"id": "E-22220002", "path": "raw/README.md", "lines": "6-7", "level": "O", "statement": "配置写在仓库根 hosts.json，不读环境变量", "quote_sha1": "0000000000b2", "observed_at": "2026-11-11", "source_ref": "fixture", "supports": ["report.md"]}
