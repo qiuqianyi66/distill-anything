@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1720" height="480" viewBox="0 0 1720 480" role="img" aria-label="蒸馏三层结构：判据层 SKILL.md、执行层 scripts、状态层 evidence.jsonl，经四态门禁产出可引用产物">
+  <rect width="1720" height="480" fill="#0f1115"/>
+  <text x="72" y="96" fill="#e8eaed" font-family="Georgia, 'Songti SC', serif" font-size="44" font-weight="700">蒸馏一切 · Distill Anything</text>
+  <text x="72" y="140" fill="#9aa4b2" font-family="Georgia, 'Songti SC', serif" font-size="22">摘要压缩篇幅；蒸馏压缩不确定性。</text>
+
+  <g font-family="'Segoe UI', 'Microsoft YaHei', sans-serif">
+    <rect x="72" y="196" width="380" height="96" rx="10" fill="#1a1f27" stroke="#3a4351"/>
+    <text x="96" y="232" fill="#e8eaed" font-size="20" font-weight="600">判据层</text>
+    <text x="96" y="262" fill="#9aa4b2" font-size="16">SKILL.md：铁律 / 分诊 / 判据 / 反模式</text>
+
+    <rect x="484" y="196" width="380" height="96" rx="10" fill="#1a1f27" stroke="#3a4351"/>
+    <text x="508" y="232" fill="#e8eaed" font-size="20" font-weight="600">执行层</text>
+    <text x="508" y="262" fill="#9aa4b2" font-size="16">scripts：init / evidence / gate / stamp</text>
+
+    <rect x="896" y="196" width="380" height="96" rx="10" fill="#1a1f27" stroke="#3a4351"/>
+    <text x="920" y="232" fill="#e8eaed" font-size="20" font-weight="600">状态层</text>
+    <text x="920" y="262" fill="#9aa4b2" font-size="16">evidence.jsonl：路径 / 行段 / 指纹</text>
+
+    <path d="M452 244 H484" stroke="#5b6577" stroke-width="2"/>
+    <path d="M864 244 H896" stroke="#5b6577" stroke-width="2"/>
+    <path d="M1276 244 H1320" stroke="#5b6577" stroke-width="2"/>
+
+    <rect x="1320" y="172" width="328" height="144" rx="10" fill="#161a20" stroke="#4c5666"/>
+    <text x="1344" y="206" fill="#e8eaed" font-size="20" font-weight="600">门禁四态</text>
+    <text x="1344" y="238" fill="#7fd1a2" font-size="16">PASS · 0</text>
+    <text x="1344" y="264" fill="#e3c06b" font-size="16">INCOMPLETE · 2</text>
+    <text x="1344" y="290" fill="#e58b8b" font-size="16">FAIL · 1</text>
+    <text x="1460" y="238" fill="#9aa4b2" font-size="16">SKIP · 0</text>
+    <text x="1460" y="264" fill="#9aa4b2" font-size="16">外来现场不判</text>
+  </g>
+
+  <g font-family="'Segoe UI', 'Microsoft YaHei', sans-serif" font-size="15" fill="#7c8696">
+    <text x="72" y="356">每条结论 → [O] / [D] / [I] 标记 + E-xxxxxxxx 证据 id → 原文一改，门禁报失效</text>
+    <text x="72" y="386">五张观察表：具体性密度 · 材料进证据率 · 上游漂移 · 叙述型单源率 · 实现层实心率</text>
+    <text x="72" y="416">读数只报观察，不下判决；判据每次偏差都留日期与原因</text>
+  </g>
+  <line x1="72" y1="444" x2="1648" y2="444" stroke="#2a313c"/>
+</svg>

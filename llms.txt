@@ -1,0 +1,45 @@
+# distill-anything
+
+> Evidence-anchored knowledge distillation for AI agents. Turn any object into falsifiable, citable knowledge instead of another summary.
+> 把任何对象蒸馏成「可证伪的判据 + 可追溯的证据 + 诚实的未知」。
+
+## What it is
+- An Agent Skill (`SKILL.md`) + Python CLI (`scripts/`) for distilling codebases, people, long documents, skill libraries, incidents, conversation logs, competitors, and methodologies.
+- Every claim carries a provenance marker: `[O]` observed, `[D]` derived, `[I]` inferred — plus an `E-xxxxxxxx` evidence id with file path, line range, and quote fingerprint.
+
+## Differentiators
+- Four-state gate: PASS (0) / INCOMPLETE (2) / FAIL (1) / SKIP (0). Checks anchor resolution, evidence library membership, fingerprint match, line range validity, dead references.
+- Five observation tables (observations only, no verdicts): specificity density, raw-material citation rate, upstream drift, narrative single-source ratio, implementation-fact solidity.
+- Score 0–50 over machine-checkable dimensions D1–D5; D6 (three-component view) and D7 (human 0–2) are reported separately and never folded into the total.
+- Red-before-green discipline: every new criterion ships with a fixture that fails first.
+
+## Install
+- `npx skills add qiuqianyi66/distill-anything`
+- or `git clone https://github.com/qiuqianyi66/distill-anything` into your runtime's skills directory.
+- Requirements: Python 3.9+. No network by default; `--remote` is opt-in for upstream drift checks.
+
+## Usage
+- `python scripts/distill.py init <slug> --type mechanism|perspective|rules|refuse`
+- `python scripts/distill.py evidence add --dir out/distill-<slug> --path <rel> --lines <a-b> --level O --statement "..."`
+- `python scripts/gate.py out/distill-<slug>/report.md`
+- `python scripts/distill.py stamp out/distill-<slug>/report.md`
+- `python scripts/audit_evidence.py out --remote`
+
+## Verified numbers (2026-11-14, single-user corpus)
+- Gate: 33/33 PASS.
+- 30 scored products: range 38.3–48.2, mean 44.9 (max 50).
+- Regressions: `run_gate_tests.py` 44/44, `run_audit_tests.py` 39/39, `score_product.py --selftest` 17/17.
+
+## Limits
+- Not a benchmark and not a standard; criteria come from recorded failures.
+- The gate checks structure and anchor integrity, not whether an anchor truly supports a claim — that remains a human call.
+- Evidence id scope is per-container.
+
+## Key files
+- `SKILL.md` — criteria, triage, pipeline, prohibitions
+- `references/quality-gate.md` — thresholds and every recorded criterion deviation
+- `references/target-matrix.md` — eight object types: first probe, must-check, known traps
+- `examples/` — two desensitized products (rules + mechanism)
+
+## License
+MIT

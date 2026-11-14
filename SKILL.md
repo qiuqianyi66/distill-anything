@@ -1,6 +1,6 @@
 ---
 name: distill-anything
-description: 蒸馏一切——把对象压成带证据锚点、未知台账、可证伪判据的产物。Use when 蒸馏X、逆向X、把X做成skill、提炼方法论。不用于纯摘要（走 doubao-critical-reading-companion）、代码库架构（走 doubao-coding-analyze-codebase）。
+description: 蒸馏一切——把对象压成带证据锚点、未知台账、可证伪判据的产物。Use when 蒸馏X、逆向X、把X做成skill、提炼方法论；also for evidence-anchored knowledge distillation of a repo, person, document, skill library, incident, or methodology into falsifiable claims with provenance anchors. 不用于纯摘要（走 doubao-critical-reading-companion）、代码库架构（走 doubao-coding-analyze-codebase）。
 version: 1.1.37
 source: 三重验证/去名测试 ← alchaincyf/nuwa-skill v1.1.0；工厂式写入/质检不允许伪造 ← titanwings/distilly；证据三元/未知台账/覆盖≠存在 ← morluto/rea；双模式授权/不确定无等级 ← 蒸馏 cloudflare/security-audit-skill（2026-11-07）；判据回流三分类 ← 蒸馏 docs/plans/skill-callability-r2.md（2026-11-08）；其余标「← 自定」的为本技能自身设计
 updated: 2026-11-14
