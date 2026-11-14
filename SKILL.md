@@ -1,8 +1,8 @@
 ---
 name: distill-anything
 description: 蒸馏一切——把对象压成带证据锚点、未知台账、可证伪判据的产物。Use when 蒸馏X、逆向X、把X做成skill、提炼方法论；also for evidence-anchored knowledge distillation of a repo, person, document, skill library, incident, or methodology into falsifiable claims with provenance anchors. 不用于纯摘要（走 doubao-critical-reading-companion）、代码库架构（走 doubao-coding-analyze-codebase）。
-version: 1.1.37
-source: 三重验证/去名测试 ← alchaincyf/nuwa-skill v1.1.0；工厂式写入/质检不允许伪造 ← titanwings/distilly；证据三元/未知台账/覆盖≠存在 ← morluto/rea；双模式授权/不确定无等级 ← 蒸馏 cloudflare/security-audit-skill（2026-11-07）；判据回流三分类 ← 蒸馏 docs/plans/skill-callability-r2.md（2026-11-08）；其余标「← 自定」的为本技能自身设计
+version: 1.1.38
+source: 三重验证/去名测试 ← alchaincyf/nuwa-skill v1.1.0；工厂式写入/质检不允许伪造 ← titanwings/distilly；证据三元/未知台账/覆盖≠存在 ← morluto/rea；双模式授权/不确定无等级 ← 蒸馏 cloudflare/security-audit-skill（2026-11-07）；判据回流三分类 ← 蒸馏 docs/plans/skill-callability-r2.md（2026-11-08）；材料准入/难转材料五出口 ← 自定（2026-11-14）；其余标「← 自定」的为本技能自身设计
 updated: 2026-11-14
 ---
 
@@ -99,7 +99,7 @@ updated: 2026-11-14
 
 **S2.5 先验快照（不查任何资料，先于采集）。** 10 分钟内把现有认识写进 `notes/prior.md`：对对象最核心的 5 个观点/做法、3 个有把握的具体事实、3 个不确定的、大众对它的一句话印象。先验几乎为空就如实写「几乎不了解」，意味着查到的每条都是增量。它是后续所有判断的参照物：采集时知道找什么、组装时知道哪些不必写、验证时知道增量从哪来。`← nuwa 2026-11-11`
 
-**S3 采集。** 按分诊表的首探针起步；每源落盘并记 `url | 作者 | 时间 | 获取方式 | 一手/二手`。优先级：用户本地一手 > 官方文档/论文原文 > 一手长访谈 > 二手转述。禁止把二手转述当原始证据。
+**S3 采集。** 先跑材料体检：`python "{skill_root}/scripts/material_audit.py" <产物目录>`（或扫描整个 `out/` 根），列出空文件、非 UTF-8、需转换的二进制、可疑未知文件、超大文本。**体检结果必须有处置**，五个出口选一个：拒收（`decision: refuse`）/ 降级（只写结构级）/ 换源（找官方原文）/ 抽样（写明规则与样本量）/ 挂起（进未知台账）。按分诊表的首探针起步；每源落盘并记 `url | 作者 | 时间 | 获取方式 | 一手/二手`。优先级：用户本地一手 > 官方文档/论文原文 > 一手长访谈 > 二手转述。禁止把二手转述当原始证据。分型处理表、行业场景与转换件写法见 `references/material-intake.md`。
 
 **S4 抽候选。** 15-30 条，逐条挂锚点。这一层允许冗余，目的是不漏。每条候选对照 `notes/prior.md` 标四类增量：
 
@@ -127,7 +127,7 @@ updated: 2026-11-14
 
 > 3-7 是**思维型框架**的数量上限。机制型的「可搬机制」与判据型的条目按对象实际规模走，不设上限——一份代码仓库蒸出 13 条可搬机制不违反本判据，只有「13 条同质、彼此可替代的原则」才违反（`← 门 4 评审 11-08：security-audit 产物 13 条机制曾被判为超限，实为不同类型的计数`）。
 
-**S7 组装。** 按产物型取模板（`references/templates/`）。每份产物必含四段：证据台账、核心框架/规则、诚实边界、未知台账。
+**S7 组装。** 按产物型取模板（`references/templates/`）。每份产物必含四段：证据台账、核心框架/规则、诚实边界、未知台账。**raw 里出现扫描件、Office、音视频、压缩包等转换件时，正文另加「材料与转换」四行**（读了什么 / 怎么转的与误差来源 / 没转成什么 / 替代源），缺「没转成什么」等于把缺口当结论。
 
 思维型产物额外两条（`← 蒸馏 nuwa-skill examples 2026-11-08`）：
 - **诚实边界前置**：开头写「擅长 / 不擅长」，把对象自己承认过的盲区摆出来。写在结尾等于等用户用错了才看到。
@@ -240,6 +240,8 @@ updated: 2026-11-14
 | 环境不支持并行 | 降级串行，做一个落盘一个 | 分轮续跑，每轮写状态文件 |
 | 蒸馏出的框架无法验证 | 代入 3 个具体场景看能否推出不同行动 | 标「未验证」并写入 limitations |
 | 证据锚点验不过（文件没了/行号越界） | 重读该处并改断言 | 不伪造 id，保留 `路径:行` 并写进未知台账 |
+| 材料打不开（加密/无文本层/登录墙） | 换官方源或渲染后存档 | 走五个出口之一并写进台账，不许沉默跳过 |
+| 转换件可能读错（OCR/转写/合并单元格） | 关键数字与引语人工复核 | 降为 `[D]` 并标「转换件，未逐字核」 |
 
 ## 6 输出与回复
 
@@ -266,6 +268,7 @@ out/distill-<slug>/
 | 资产 | 用途 | 怎么用 |
 |---|---|---|
 | `references/target-matrix.md` | 八类对象的探针与已知坑 | 按需读 |
+| `references/material-intake.md` | 材料准入四问、18 类难转材料的分型处理、五个出口、12 个行业场景与转换件四行写法 | 采集前读；遇到打不开/读不对的材料时按它选出口 |
 | `references/six-dimensions.md` | 六维调研框架（人物/技术/领域的完整探针展开） | 人、技术、领域类对象先读 |
 | `references/fidelity-scorecard.md` | 保真度评分卡（FIDELITY 打分口径） | 要发布质量的产物，交付前打分 |
 | `references/evidence-protocol.md` | 三层标记、锚点格式、纠正流程 | 按需读 |
@@ -285,6 +288,7 @@ out/distill-<slug>/
 | `scripts/score_product.py` | 跨派对照评分器：D1–D5 机器可判五维，总分 = 五维之和（上限 50）；D6 派生视图、D7 人工分均不并入总分 | 打分 `--batch`，改算法后跑 `--selftest` |
 | `scripts/migrate_legacy.py` | 把旧产物的路径锚点迁进证据库 | `python scripts/migrate_legacy.py --help` |
 | `scripts/audit_evidence.py` | 交付前体检：密度 / raw 进证据率 / 上游漂移 / 叙述型单源率 / 实现层实心率五张观察表 | 交付前跑，`--remote` 才查漂移，`--json` 给回归用 |
+| `scripts/material_audit.py` | 材料体检：空文件 / 非 UTF-8 / 需转换二进制 / 可疑未知 / 超大文本，逐类给处理路线（只读） | S3 采集前跑，`--selftest` 7 项、`--json`、`--strict` |
 | `tests/run_gate_tests.py` | 门禁回归 44 例（CLI 级三态 + 4 个变异夹具 + 3 个克制型夹具 + 降级路径/运行安全守卫的 fired 集合全等 + 双向反证） | 改任何判据后必须跑 |
 | `tests/run_audit_tests.py` | 观察表回归 39 项（叙述型 18：4 夹具；实现层 21：实心/空写/缺节/仅文档/仅 .mjs 5 夹具） | 改 `audit_evidence.py` 后必须跑 |
 | `tests/test_groups.py` | 5 个 `_check_*` 分组函数的函数级单测 | 改单个分组判据时先跑它，定位比 CLI 级快 |

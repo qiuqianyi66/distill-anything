@@ -158,6 +158,18 @@ python scripts/audit_evidence.py out --remote
 
 ---
 
+## 材料不干净怎么办
+
+真实对象的材料常常打不开：扫描判决书、加密 PDF、动态网页、监控视频、GBK 日志、旧版 Office、多 sheet 底稿。读不到不等于对象没内容，读到也不等于读对。
+
+- `scripts/material_audit.py` 在采集前做只读体检：空文件、非 UTF-8、需提取文本层的二进制、可疑未知文件、超大文本，逐类给一行处理路线。对 30 份存量产物实测：3635 个文件里 99 个二进制需转换，空文件与编码坏文件为 0。
+- 体检有问题必须选一个出口：**拒收**（`decision: refuse`）/ **降级**（只写结构级）/ **换源**（找官方原文）/ **抽样**（写明规则与样本量）/ **挂起**（进未知台账）。不许沉默跳过。
+- 转换件在正文写四行「材料与转换」：读了什么、怎么转的与误差来源、没转成什么、替代源。缺最后一行，读者会把缺口当结论。
+
+18 类材料的分型处理、12 个行业场景（律师/医生/财务/工程/科研/政务等）与 OCR、转写、合并单元格的坑，见 [`references/material-intake.md`](references/material-intake.md)。
+
+---
+
 ## 它站在谁的肩膀上
 
 不装作从零发明。判据里有四条主线是蒸馏别人的产物后改的，`SKILL.md` 的 `source` 字段逐条留了出处：
@@ -184,12 +196,14 @@ distill-anything/
 │   ├── target-matrix.md     # 八类对象：首探针、必查项、已知坑
 │   ├── evidence-protocol.md # 三层标记、锚点格式、外部来源分级、纠正流程
 │   ├── quality-gate.md      # 门禁阈值 + 每次判据偏差的留痕
+│   ├── material-intake.md   # 材料准入：18 类难转材料、五个出口、12 个行业场景
 │   ├── templates/           # mechanism / perspective / rules / refuse 四型骨架
 │   └── ...                  # 评分卡、六维口径等
 ├── scripts/
 │   ├── distill.py           # CLI：init / gate / index / evidence / scan / stamp
 │   ├── gate.py              # 单文件门禁，可独立调用
 │   ├── audit_evidence.py    # 五张观察表
+│   ├── material_audit.py    # 采集前材料体检：空文件 / 编码 / 二进制 / 超大文件
 │   ├── score_product.py     # D1–D5 打分（/50；D6 派生、D7 人工不并入）
 │   ├── anchorize.py         # 路径锚点批量换成证据 id
 │   ├── d7_blind.py          # 盲化评分，防自由打分
@@ -211,6 +225,7 @@ python tests/run_gate_tests.py    # 44/44
 python tests/test_groups.py       # 5 组 / 全项通过
 python tests/run_audit_tests.py   # 39/39（叙述型单源率 + 实现层实心率）
 python scripts/score_product.py --selftest   # 17/17
+python scripts/material_audit.py --selftest  # 7/7（空文件/编码/二进制/未知/超大）
 ```
 
 三个测试层互不替代：CLI 级验整份产物的最终状态，函数级直调五个 `_check_*` 分组函数，审计回归验观察表的读数口径。**新增判据时同提交必须给一个能打红的反例**——只有正向断言的测试在判据退化时仍然是绿的。
